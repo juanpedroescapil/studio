@@ -18,7 +18,7 @@ const initialExpenses: Expense[] = [
   { id: '6', description: 'Factura de electricidad', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Servicios', paymentMethod: 'cash' },
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ff4d4d', '#4dff4d', '#4d4dff'];
+const COLORS = ['#22c55e', '#facc15', '#ef4444', '#38bdf8', '#a855f7', '#f97316', '#84cc16', '#eab308'];
 
 export default function MonthlyBreakdown() {
   const [expenses] = useState<Expense[]>(initialExpenses);
@@ -126,4 +126,3 @@ export default function MonthlyBreakdown() {
     </div>
   );
 }
-
