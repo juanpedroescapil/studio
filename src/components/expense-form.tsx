@@ -40,6 +40,14 @@ const formSchema = z.object({
 type ExpenseFormValues = z.infer<typeof formSchema>;
 
 export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit }: ExpenseFormProps) {
+  const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setInitialDate(new Date());
+    }
+  }, []);
+
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -68,9 +76,17 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         interestRate: expenseToEdit.installments?.interestRate,
       });
     } else {
-      form.reset();
+        form.reset({
+        description: '',
+        amount: 0,
+        date: initialDate,
+        category: 'Food',
+        paymentMethod: 'cash',
+        installmentsCount: 1,
+        interestRate: 0,
+      });
     }
-  }, [expenseToEdit, isOpen, form]);
+  }, [expenseToEdit, isOpen, form, initialDate]);
 
   const paymentMethod = form.watch('paymentMethod');
 
