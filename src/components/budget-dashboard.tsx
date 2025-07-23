@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Download, Upload, Wallet, CreditCard, TrendingUp, Landmark } from 'lucide-react';
+import { Plus, Download, Upload, Wallet, CreditCard, TrendingUp, Landmark, Banknote } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import { ExpenseTable } from './expense-table';
 import { Expense, categories } from '@/types';
@@ -42,7 +42,7 @@ export default function BudgetDashboard() {
   const expandedExpenses = useMemo(() => {
     const allExpenses: Expense[] = [];
     expenses.forEach(expense => {
-      if (expense.installments && expense.installments.count > 1) {
+      if ((expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installments && expense.installments.count > 1) {
         for (let i = 0; i < expense.installments.count; i++) {
           allExpenses.push({
             ...expense,
@@ -127,18 +127,20 @@ export default function BudgetDashboard() {
     setSelectedExpense(null);
   }
 
-  const { totalExpenses, cashExpenses, cardExpenses } = useMemo(() => {
-    // Usar expandedExpenses para las tarjetas de resumen para reflejar el mes filtrado
+  const { totalExpenses, cashExpenses, cardExpenses, creditExpenses } = useMemo(() => {
     return filteredExpenses.reduce((acc, expense) => {
       acc.totalExpenses += expense.amount;
       if (expense.paymentMethod === 'cash') {
         acc.cashExpenses += expense.amount;
-      } else {
+      } else if (expense.paymentMethod === 'credit-card') {
         acc.cardExpenses += expense.amount;
+      } else if (expense.paymentMethod === 'credit') {
+        acc.creditExpenses += expense.amount;
       }
       return acc;
-    }, { totalExpenses: 0, cashExpenses: 0, cardExpenses: 0 });
+    }, { totalExpenses: 0, cashExpenses: 0, cardExpenses: 0, creditExpenses: 0 });
   }, [filteredExpenses]);
+
 
   const handleExport = useCallback(() => {
     const header = "id,descripcion,monto,fecha,categoria,metodo_pago,cuotas_cantidad,cuotas_interes,cuotas_pago_mensual\n";
@@ -193,7 +195,7 @@ export default function BudgetDashboard() {
             category: columns[4] as Expense['category'],
             paymentMethod: columns[5] as Expense['paymentMethod'],
           };
-          if (expense.paymentMethod === 'credit-card' && columns[6]) {
+          if ((expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && columns[6]) {
             expense.installments = {
               count: parseInt(columns[6]),
               interestRate: parseFloat(columns[7]),
@@ -246,7 +248,7 @@ export default function BudgetDashboard() {
         </div>
       </header>
       <main className="flex-1 p-4 md:p-6 lg:p-8 container mx-auto">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Gastos Totales</CardTitle>
@@ -277,6 +279,16 @@ export default function BudgetDashboard() {
               <p className="text-xs text-muted-foreground">Pagado con tarjeta de crédito</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Créditos</CardTitle>
+              <Banknote className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${creditExpenses.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">Pagado con créditos</p>
+            </CardContent>
+          </Card>
         </div>
         <Card className="mt-8">
           <CardHeader>
@@ -295,7 +307,7 @@ export default function BudgetDashboard() {
                       {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                   <Select value={filters.paymentMethod} onValueChange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
+                   <Select value={filters.paymentMethod} onValuechange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
                     <SelectTrigger className="w-full md:w-[160px]">
                       <SelectValue placeholder="Pago" />
                     </SelectTrigger>
@@ -303,6 +315,7 @@ export default function BudgetDashboard() {
                       <SelectItem value="all">Todos los Pagos</SelectItem>
                       <SelectItem value="cash">Efectivo</SelectItem>
                       <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
+                      <SelectItem value="credit">Crédito</SelectItem>
                     </SelectContent>
                   </Select>
                    <Popover>

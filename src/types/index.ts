@@ -4,7 +4,7 @@ export type Expense = {
   amount: number;
   date: Date;
   category: string;
-  paymentMethod: 'cash' | 'credit-card';
+  paymentMethod: 'cash' | 'credit-card' | 'credit';
   installments?: {
     count: number;
     interestRate: number;
@@ -15,6 +15,6 @@ export type Expense = {
   isInstallment?: boolean;
 };
 
-export type Category = 'Comida' | 'Transporte' | 'Vivienda' | 'Entretenimiento' | 'Compras' | 'Servicios' | 'Salud' | 'Otros';
+export type Category = 'Comida' | 'Transporte' | 'Vivienda' | 'Entretenimiento' | 'Compras' | 'Servicios' | 'Salud' | 'Otros' | 'Préstamos';
 
-export const categories: Category[] = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Otros'];
+export const categories: Category[] = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Préstamos', 'Otros'];

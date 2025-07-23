@@ -14,10 +14,12 @@ import { Separator } from "./ui/separator";
 import { Expense } from "@/types";
 import { format } from "date-fns";
 import {
+  Banknote,
   Car,
   CreditCard,
   HeartPulse,
   Home,
+  PiggyBank,
   ShoppingCart,
   Tv,
   Utensils,
@@ -39,6 +41,7 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
   Entretenimiento: <Tv className="h-4 w-4" />,
   Salud: <HeartPulse className="h-4 w-4" />,
   Servicios: <Zap className="h-4 w-4" />,
+  Préstamos: <PiggyBank className="h-4 w-4" />,
   Otros: <div className="h-4 w-4" />,
 };
 
@@ -48,6 +51,21 @@ export function ExpenseDetail({
   onOpenChange,
 }: ExpenseDetailProps) {
   if (!expense) return null;
+
+  const getPaymentMethod = () => {
+    switch (expense.paymentMethod) {
+      case 'cash':
+        return { icon: <Wallet className="h-4 w-4 text-green-600" />, label: 'Efectivo' };
+      case 'credit-card':
+        return { icon: <CreditCard className="h-4 w-4 text-blue-600" />, label: 'Tarjeta de Crédito' };
+      case 'credit':
+        return { icon: <Banknote className="h-4 w-4 text-purple-600" />, label: 'Crédito' };
+      default:
+        return { icon: null, label: '' };
+    }
+  };
+
+  const paymentMethodDetails = getPaymentMethod();
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -89,17 +107,11 @@ export function ExpenseDetail({
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Método de Pago</span>
             <div className="flex items-center gap-2">
-              {expense.paymentMethod === "cash" ? (
-                <Wallet className="h-4 w-4 text-green-600" />
-              ) : (
-                <CreditCard className="h-4 w-4 text-blue-600" />
-              )}
-              <span className="capitalize">
-                {expense.paymentMethod === 'cash' ? 'Efectivo' : 'Tarjeta de Crédito'}
-              </span>
+              {paymentMethodDetails.icon}
+              <span className="capitalize">{paymentMethodDetails.label}</span>
             </div>
           </div>
-          {expense.installments && expense.installments.count > 1 && (
+          {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installments && expense.installments.count > 1 && (
             <>
               <Separator />
               <div className="space-y-2">

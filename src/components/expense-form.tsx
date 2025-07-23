@@ -32,7 +32,7 @@ const formSchema = z.object({
   amount: z.coerce.number().positive('El monto debe ser positivo'),
   date: z.date(),
   category: z.enum(categories),
-  paymentMethod: z.enum(['cash', 'credit-card']),
+  paymentMethod: z.enum(['cash', 'credit-card', 'credit']),
   installmentsCount: z.coerce.number().optional(),
   interestRate: z.coerce.number().optional(),
 });
@@ -122,7 +122,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
       paymentMethod: values.paymentMethod,
     };
 
-    if (values.paymentMethod === 'credit-card') {
+    if (values.paymentMethod === 'credit-card' || values.paymentMethod === 'credit') {
       const count = values.installmentsCount || 1;
       const interestRate = values.interestRate || 0;
       expenseData.installments = {
@@ -130,8 +130,6 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         interestRate,
         monthlyPayment: calculateMonthlyPayment(values.amount, interestRate, count),
       };
-      // For credit card purchases, the amount should be the total amount, not the monthly payment.
-      // The monthly payment is just for calculation. The total amount reflects the debt.
     }
     
     if(expenseToEdit) {
@@ -161,7 +159,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                   <FormLabel>Descripción</FormLabel>
                    <div className="flex items-center gap-2">
                     <FormControl>
-                      <Input placeholder="Ej: Café con amigos" {...field} />
+                      <Input placeholder="Ej: Crédito hipotecario" {...field} />
                     </FormControl>
                     <Button type="button" variant="outline" size="icon" onClick={handleSuggestCategory} disabled={isSuggestionLoading}>
                         {isSuggestionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
@@ -258,6 +256,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                         <SelectContent>
                         <SelectItem value="cash">Efectivo</SelectItem>
                         <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
+                        <SelectItem value="credit">Crédito</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -266,7 +265,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 />
             </div>
 
-            {paymentMethod === 'credit-card' && (
+            {(paymentMethod === 'credit-card' || paymentMethod === 'credit') && (
               <div className="grid grid-cols-2 gap-4 border-t pt-4">
                 <FormField
                   control={form.control}
