@@ -13,15 +13,15 @@ import { Calendar } from './ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
-import {utcToZonedTime} from "date-fns-tz";
+import {toZonedTime} from "date-fns-tz";
 
 const initialExpenses: Expense[] = [
-  { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: utcToZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
-  { id: '2', description: 'Monthly rent', amount: 1200, date: utcToZonedTime(new Date('2024-07-01T00:00:00Z'), 'UTC'), category: 'Housing', paymentMethod: 'cash' },
-  { id: '3', description: 'New Laptop', amount: 1500, date: utcToZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Shopping', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
-  { id: '4', description: 'Gasoline for car', amount: 50, date: utcToZonedTime(new Date('2024-07-10T00:00:00Z'), 'UTC'), category: 'Transport', paymentMethod: 'cash' },
-  { id: '5', description: 'Dinner with friends', amount: 120, date: utcToZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
-  { id: '6', description: 'Electricity Bill', amount: 85, date: utcToZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Utilities', paymentMethod: 'cash' },
+  { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
+  { id: '2', description: 'Monthly rent', amount: 1200, date: toZonedTime(new Date('2024-07-01T00:00:00Z'), 'UTC'), category: 'Housing', paymentMethod: 'cash' },
+  { id: '3', description: 'New Laptop', amount: 1500, date: toZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Shopping', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
+  { id: '4', description: 'Gasoline for car', amount: 50, date: toZonedTime(new Date('2024-07-10T00:00:00Z'), 'UTC'), category: 'Transport', paymentMethod: 'cash' },
+  { id: '5', description: 'Dinner with friends', amount: 120, date: toZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
+  { id: '6', description: 'Electricity Bill', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Utilities', paymentMethod: 'cash' },
 ];
 
 export default function BudgetDashboard() {
