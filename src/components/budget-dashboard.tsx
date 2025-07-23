@@ -49,6 +49,19 @@ export default function BudgetDashboard() {
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [expenses, filters]);
 
+  const groupedExpenses = useMemo(() => {
+    return filteredExpenses.reduce((acc, expense) => {
+      const month = format(expense.date, 'MMMM yyyy');
+      if (!acc[month]) {
+        acc[month] = { expenses: [], subtotal: 0 };
+      }
+      acc[month].expenses.push(expense);
+      acc[month].subtotal += expense.amount;
+      return acc;
+    }, {} as Record<string, { expenses: Expense[]; subtotal: number }>);
+  }, [filteredExpenses]);
+
+
   const handleAddExpense = (expense: Omit<Expense, 'id'>) => {
     setExpenses(prev => [...prev, { ...expense, id: Date.now().toString() }]);
     toast({ title: "Success", description: "Expense added successfully." });
@@ -279,7 +292,7 @@ export default function BudgetDashboard() {
           </CardHeader>
           <CardContent>
             <ExpenseTable 
-              expenses={filteredExpenses} 
+              groupedExpenses={groupedExpenses} 
               onEdit={handleOpenEditForm}
               onDelete={handleDeleteExpense}
             />
@@ -296,5 +309,3 @@ export default function BudgetDashboard() {
     </div>
   );
 }
-
-    
