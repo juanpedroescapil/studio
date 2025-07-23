@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Control de Gastos',
+  title: 'rTarjeV8',
   description: 'Administra tus gastos mensuales en efectivo y tarjeta de crédito con facilidad.',
 };
 

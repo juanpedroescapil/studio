@@ -12,7 +12,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <Landmark className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold font-headline">BudgetWise</h1>
+              <h1 className="text-2xl font-bold font-headline">rTarjeV8</h1>
             </div>
             <MainNav className="mx-6" />
             <div className="flex items-center gap-2">
