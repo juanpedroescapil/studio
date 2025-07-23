@@ -20,6 +20,7 @@ import { MainNav } from './main-nav';
 import { CategoryManager } from './category-manager';
 import { CreditCardManager } from './credit-card-manager';
 import { UserNav } from './user-nav';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const initialCreditCards: CreditCard[] = [
   { id: 'cc1', name: 'Visa Signature', bank: 'Banco Principal' },
@@ -405,14 +406,31 @@ export default function BudgetDashboard() {
                         />
                     </PopoverContent>
                 </Popover>
-                <Button variant="ghost" onClick={handleSetCurrentMonthFilter}>
-                  <CalendarClock className="mr-2 h-4 w-4" />
-                  Mes Actual
-                </Button>
-                <Button variant="ghost" onClick={handleClearFilters}>
-                  <FilterX className="mr-2 h-4 w-4" />
-                  Limpiar
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={handleSetCurrentMonthFilter}>
+                        <CalendarClock className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Mes Actual</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={handleClearFilters}>
+                        <FilterX className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Limpiar Filtros</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 </div>
             </div>
           </CardHeader>
