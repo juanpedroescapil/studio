@@ -83,11 +83,12 @@ export default function MonthlyBreakdown() {
     if (filteredData.length !== 1) return {};
     return filteredData[0].expenses.reduce((acc, expense) => {
         if(!acc[expense.category]) {
-            acc[expense.category] = [];
+            acc[expense.category] = { expenses: [], subtotal: 0};
         }
-        acc[expense.category].push(expense);
+        acc[expense.category].expenses.push(expense);
+        acc[expense.category].subtotal += expense.amount;
         return acc;
-    }, {} as Record<string, Expense[]>)
+    }, {} as Record<string, { expenses: Expense[], subtotal: number }>)
   }, [filteredData])
 
   return (
@@ -152,14 +153,15 @@ export default function MonthlyBreakdown() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {Object.entries(expensesGroupedByCategory).map(([category, expenses]) => (
+                            {Object.entries(expensesGroupedByCategory).map(([category, { expenses, subtotal }]) => (
                                 <React.Fragment key={category}>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableCell colSpan={3} className="font-bold">{category}</TableCell>
+                                        <TableCell colSpan={2} className="font-bold">{category}</TableCell>
+                                        <TableCell className="text-right font-bold font-mono">${subtotal.toFixed(2)}</TableCell>
                                     </TableRow>
                                     {expenses.map(expense => (
                                         <TableRow key={expense.id}>
-                                            <TableCell>{expense.description}</TableCell>
+                                            <TableCell className="pl-8">{expense.description}</TableCell>
                                             <TableCell>{format(expense.date, 'dd/MM/yyyy')}</TableCell>
                                             <TableCell className="text-right font-mono">${expense.amount.toFixed(2)}</TableCell>
                                         </TableRow>
