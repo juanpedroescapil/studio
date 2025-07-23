@@ -15,6 +15,7 @@ import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
 import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
+import { MainNav } from './main-nav';
 
 const initialExpenses: Expense[] = [
   { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
@@ -226,6 +227,7 @@ export default function BudgetDashboard() {
                     <Landmark className="h-8 w-8 text-primary" />
                     <h1 className="text-2xl font-bold font-headline">BudgetWise</h1>
                 </div>
+                 <MainNav className="mx-6" />
                 <div className="flex items-center gap-2">
                     <input
                       type="file"
@@ -307,7 +309,7 @@ export default function BudgetDashboard() {
                       {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                   <Select value={filters.paymentMethod} onValuechange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
+                   <Select value={filters.paymentMethod} onValueChange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
                     <SelectTrigger className="w-full md:w-[160px]">
                       <SelectValue placeholder="Pago" />
                     </SelectTrigger>
