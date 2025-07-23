@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Download, Upload, Wallet, CreditCard as CreditCardIcon, TrendingUp, Landmark, Banknote } from 'lucide-react';
+import { Plus, Download, Upload, Wallet, CreditCard as CreditCardIcon, TrendingUp, Landmark, Banknote, FilterX } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import { ExpenseTable } from './expense-table';
 import { Expense, CreditCard, Category } from '@/types';
@@ -59,6 +59,14 @@ export default function BudgetDashboard() {
       to: endOfMonth(new Date())
     }
   });
+
+  const handleClearFilters = () => {
+    setFilters({
+      category: 'all',
+      paymentMethod: 'all',
+      dateRange: undefined
+    })
+  }
   
   const expandedExpenses = useMemo(() => {
     const allExpenses: Expense[] = [];
@@ -89,9 +97,15 @@ export default function BudgetDashboard() {
       
       let dateMatch = true;
       if (filters.dateRange?.from) {
-        const fromDate = filters.dateRange.from;
-        const toDate = filters.dateRange.to || endOfMonth(fromDate);
-        dateMatch = expense.date >= startOfMonth(fromDate) && expense.date <= toDate;
+        let fromDate = filters.dateRange.from;
+        let toDate = filters.dateRange.to;
+  
+        if (!toDate) { // If only from is selected, filter for the whole month.
+          fromDate = startOfMonth(filters.dateRange.from);
+          toDate = endOfMonth(filters.dateRange.from);
+        }
+        
+        dateMatch = expense.date >= fromDate && expense.date <= toDate;
       }
 
       return categoryMatch && paymentMethodMatch && dateMatch;
@@ -381,6 +395,10 @@ export default function BudgetDashboard() {
                         />
                     </PopoverContent>
                 </Popover>
+                <Button variant="ghost" onClick={handleClearFilters}>
+                  <FilterX className="mr-2 h-4 w-4" />
+                  Limpiar
+                </Button>
                 </div>
             </div>
           </CardHeader>
@@ -432,3 +450,5 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    
