@@ -54,7 +54,10 @@ export default function BudgetDashboard() {
   const [filters, setFilters] = useState<{ category: string; paymentMethod: string; dateRange: DateRange | undefined }>({
     category: 'all',
     paymentMethod: 'all',
-    dateRange: undefined
+    dateRange: {
+      from: startOfMonth(new Date()),
+      to: endOfMonth(new Date())
+    }
   });
   
   const expandedExpenses = useMemo(() => {
@@ -429,5 +432,3 @@ export default function BudgetDashboard() {
     </div>
   );
 }
-
-    
