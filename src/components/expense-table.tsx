@@ -75,6 +75,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                                         <PopoverContent className="w-60">
                                             <div className="grid gap-2 text-sm">
                                                 <div className="font-semibold">Installment Details</div>
+                                                <div className="flex justify-between"><span>Total Amount:</span> <span>${(expense.installments.monthlyPayment * expense.installments.count).toFixed(2)}</span></div>
                                                 <div className="flex justify-between"><span>Installments:</span> <span>{expense.installments.count}</span></div>
                                                 <div className="flex justify-between"><span>Interest Rate:</span> <span>{expense.installments.interestRate}%</span></div>
                                                 <div className="flex justify-between"><span>Monthly:</span> <span>${expense.installments.monthlyPayment.toFixed(2)}</span></div>
@@ -87,7 +88,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                             <TableCell onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={expense.isInstallment}>
                                     <span className="sr-only">Open menu</span>
                                     <MoreHorizontal className="h-4 w-4" />
                                     </Button>
@@ -95,7 +96,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => onView(expense)}>View Details</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onDelete(expense.id)} className="text-destructive">Delete</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onDelete(expense.originalId || expense.id)} className="text-destructive">Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
@@ -115,3 +116,5 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
     </div>
   );
 }
+
+    

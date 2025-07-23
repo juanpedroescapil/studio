@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
 import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
@@ -38,9 +38,31 @@ export default function BudgetDashboard() {
     paymentMethod: 'all',
     dateRange: undefined
   });
+  
+  const expandedExpenses = useMemo(() => {
+    const allExpenses: Expense[] = [];
+    expenses.forEach(expense => {
+      if (expense.installments && expense.installments.count > 1) {
+        for (let i = 0; i < expense.installments.count; i++) {
+          allExpenses.push({
+            ...expense,
+            id: `${expense.id}-${i}`,
+            originalId: expense.id,
+            date: addMonths(expense.date, i),
+            amount: expense.installments.monthlyPayment,
+            description: `${expense.description} (${i + 1}/${expense.installments.count})`,
+            isInstallment: true,
+          });
+        }
+      } else {
+        allExpenses.push(expense);
+      }
+    });
+    return allExpenses;
+  }, [expenses]);
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter(expense => {
+    return expandedExpenses.filter(expense => {
       const categoryMatch = filters.category === 'all' || expense.category === filters.category;
       const paymentMethodMatch = filters.paymentMethod === 'all' || expense.paymentMethod === filters.paymentMethod;
       const dateMatch = !filters.dateRange || (
@@ -49,7 +71,7 @@ export default function BudgetDashboard() {
       );
       return categoryMatch && paymentMethodMatch && dateMatch;
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [expenses, filters]);
+  }, [expandedExpenses, filters]);
 
   const groupedExpenses = useMemo(() => {
     return filteredExpenses.reduce((acc, expense) => {
@@ -58,11 +80,7 @@ export default function BudgetDashboard() {
         acc[month] = { expenses: [], subtotal: 0 };
       }
       acc[month].expenses.push(expense);
-      if (expense.paymentMethod === 'credit-card' && expense.installments && expense.installments.count > 1) {
-        acc[month].subtotal += expense.installments.monthlyPayment;
-      } else {
-        acc[month].subtotal += expense.amount;
-      }
+      acc[month].subtotal += expense.amount;
       return acc;
     }, {} as Record<string, { expenses: Expense[]; subtotal: number }>);
   }, [filteredExpenses]);
@@ -74,12 +92,13 @@ export default function BudgetDashboard() {
   };
   
   const handleUpdateExpense = (expense: Expense) => {
-    setExpenses(prev => prev.map(e => e.id === expense.id ? expense : e));
+    setExpenses(prev => prev.map(e => (e.id === expense.originalId || e.id === expense.id) ? expense : e));
     toast({ title: "Success", description: "Expense updated successfully." });
   };
   
   const handleOpenEditForm = (expense: Expense) => {
-    setEditingExpense(expense);
+    const originalExpense = expenses.find(e => e.id === (expense.originalId || expense.id));
+    setEditingExpense(originalExpense);
     setIsFormOpen(true);
   };
 
@@ -87,22 +106,25 @@ export default function BudgetDashboard() {
     setExpenses(prev => prev.filter(e => e.id !== id));
     toast({ title: "Success", description: "Expense deleted." });
   };
+  
+  const handleViewExpense = (expense: Expense) => {
+    const originalExpense = expenses.find(e => e.id === (expense.originalId || expense.id));
+    if (originalExpense) {
+        setSelectedExpense(originalExpense);
+    }
+  };
 
   const handleOpenForm = () => {
     setEditingExpense(undefined);
     setIsFormOpen(true);
   }
   
-  const handleViewExpense = (expense: Expense) => {
-    setSelectedExpense(expense);
-  };
-
   const handleCloseDetail = () => {
     setSelectedExpense(null);
   }
 
   const { totalExpenses, cashExpenses, cardExpenses } = useMemo(() => {
-    return filteredExpenses.reduce((acc, expense) => {
+    return expenses.reduce((acc, expense) => { // Use original expenses for summary cards
       acc.totalExpenses += expense.amount;
       if (expense.paymentMethod === 'cash') {
         acc.cashExpenses += expense.amount;
@@ -111,7 +133,7 @@ export default function BudgetDashboard() {
       }
       return acc;
     }, { totalExpenses: 0, cashExpenses: 0, cardExpenses: 0 });
-  }, [filteredExpenses]);
+  }, [expenses]);
 
   const handleExport = useCallback(() => {
     const header = "id,description,amount,date,category,paymentMethod,installments_count,installments_interest,installments_monthly_payment\n";
@@ -331,3 +353,5 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    

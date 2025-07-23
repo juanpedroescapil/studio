@@ -10,8 +10,13 @@ export type Expense = {
     interestRate: number;
     monthlyPayment: number;
   };
+  // Internal properties for expanded expenses
+  originalId?: string;
+  isInstallment?: boolean;
 };
 
 export type Category = 'Food' | 'Transport' | 'Housing' | 'Entertainment' | 'Shopping' | 'Utilities' | 'Health' | 'Other';
 
 export const categories: Category[] = ['Food', 'Transport', 'Housing', 'Entertainment', 'Shopping', 'Utilities', 'Health', 'Other'];
+
+    
