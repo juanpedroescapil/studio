@@ -7,6 +7,7 @@ import { toZonedTime } from "date-fns-tz";
 import { addMonths, format } from 'date-fns';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 
 const initialExpenses: Expense[] = [
@@ -48,20 +49,22 @@ export default function MonthlyBreakdown() {
     const groupedByMonth = expandedExpenses.reduce((acc, expense) => {
       const month = format(expense.date, 'MMMM yyyy');
       if (!acc[month]) {
-        acc[month] = { total: 0, byCategory: {} };
+        acc[month] = { total: 0, byCategory: {}, expenses: [] };
       }
       acc[month].total += expense.amount;
       if (!acc[month].byCategory[expense.category]) {
         acc[month].byCategory[expense.category] = 0;
       }
       acc[month].byCategory[expense.category] += expense.amount;
+      acc[month].expenses.push(expense);
       return acc;
-    }, {} as Record<string, { total: number; byCategory: Record<string, number> }>);
+    }, {} as Record<string, { total: number; byCategory: Record<string, number>; expenses: Expense[] }>);
 
     return Object.entries(groupedByMonth).map(([month, data]) => ({
       month,
       total: data.total,
       categoryData: Object.entries(data.byCategory).map(([name, value]) => ({ name, value })),
+      expenses: data.expenses.sort((a,b) => a.category.localeCompare(b.category))
     })).sort((a,b) => new Date(b.month).getTime() - new Date(a.month).getTime());
   }, [expandedExpenses]);
   
@@ -75,6 +78,17 @@ export default function MonthlyBreakdown() {
   const availableMonths = useMemo(() => {
     return monthlyData.map(data => data.month);
   }, [monthlyData]);
+
+  const expensesGroupedByCategory = useMemo(() => {
+    if (filteredData.length !== 1) return {};
+    return filteredData[0].expenses.reduce((acc, expense) => {
+        if(!acc[expense.category]) {
+            acc[expense.category] = [];
+        }
+        acc[expense.category].push(expense);
+        return acc;
+    }, {} as Record<string, Expense[]>)
+  }, [filteredData])
 
   return (
     <div>
@@ -91,9 +105,9 @@ export default function MonthlyBreakdown() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
           {filteredData.map(({ month, total, categoryData }) => (
-            <Card key={month}>
+            <Card key={month} className={filteredData.length === 1 ? 'lg:col-span-2' : ''}>
               <CardHeader>
                 <CardTitle>{month}</CardTitle>
                 <p className="text-2xl font-bold">${total.toFixed(2)}</p>
@@ -123,6 +137,40 @@ export default function MonthlyBreakdown() {
             </Card>
           ))}
         </div>
+        {filteredData.length === 1 && (
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Detalle de Gastos - {filteredData[0].month}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Descripción</TableHead>
+                                <TableHead>Fecha</TableHead>
+                                <TableHead className="text-right">Monto</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {Object.entries(expensesGroupedByCategory).map(([category, expenses]) => (
+                                <React.Fragment key={category}>
+                                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                        <TableCell colSpan={3} className="font-bold">{category}</TableCell>
+                                    </TableRow>
+                                    {expenses.map(expense => (
+                                        <TableRow key={expense.id}>
+                                            <TableCell>{expense.description}</TableCell>
+                                            <TableCell>{format(expense.date, 'dd/MM/yyyy')}</TableCell>
+                                            <TableCell className="text-right font-mono">${expense.amount.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </React.Fragment>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        )}
     </div>
   );
 }
