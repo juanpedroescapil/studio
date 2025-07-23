@@ -362,9 +362,9 @@ export default function BudgetDashboard() {
                     <CardTitle>Historial de Gastos</CardTitle>
                     <CardDescription>Ver y administrar tus gastos registrados.</CardDescription>
                 </div>
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2">
                   <Select value={filters.category} onValueChange={(value) => setFilters(f => ({ ...f, category: value }))}>
-                    <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectTrigger className="w-[160px]">
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent>
@@ -373,7 +373,7 @@ export default function BudgetDashboard() {
                     </SelectContent>
                   </Select>
                    <Select value={filters.paymentMethod} onValueChange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
-                    <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectTrigger className="w-[160px]">
                       <SelectValue placeholder="Pago" />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,7 +385,7 @@ export default function BudgetDashboard() {
                   </Select>
                    <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full sm:w-auto justify-start text-left font-normal">
+                      <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
                           {filters.dateRange?.from ? (
                               filters.dateRange.to ? (
                                   `${format(filters.dateRange.from, "LLL dd, y")} - ${format(filters.dateRange.to, "LLL dd, y")}`
@@ -418,7 +418,6 @@ export default function BudgetDashboard() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -482,5 +481,3 @@ export default function BudgetDashboard() {
     </div>
   );
 }
-
-    
