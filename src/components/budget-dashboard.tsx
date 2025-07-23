@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Download, Upload, Wallet, CreditCard as CreditCardIcon, TrendingUp, Landmark, Banknote, FilterX } from 'lucide-react';
+import { Plus, Download, Upload, Wallet, CreditCard as CreditCardIcon, TrendingUp, Landmark, Banknote, FilterX, CalendarClock } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import { ExpenseTable } from './expense-table';
 import { Expense, CreditCard, Category } from '@/types';
@@ -67,6 +67,16 @@ export default function BudgetDashboard() {
       dateRange: undefined
     })
   }
+
+  const handleSetCurrentMonthFilter = () => {
+    setFilters(f => ({
+      ...f,
+      dateRange: {
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date())
+      }
+    }));
+  };
   
   const expandedExpenses = useMemo(() => {
     const allExpenses: Expense[] = [];
@@ -351,9 +361,9 @@ export default function BudgetDashboard() {
                     <CardTitle>Historial de Gastos</CardTitle>
                     <CardDescription>Ver y administrar tus gastos registrados.</CardDescription>
                 </div>
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
                   <Select value={filters.category} onValueChange={(value) => setFilters(f => ({ ...f, category: value }))}>
-                    <SelectTrigger className="w-full md:w-[160px]">
+                    <SelectTrigger className="w-full sm:w-[160px]">
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent>
@@ -362,7 +372,7 @@ export default function BudgetDashboard() {
                     </SelectContent>
                   </Select>
                    <Select value={filters.paymentMethod} onValueChange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
-                    <SelectTrigger className="w-full md:w-[160px]">
+                    <SelectTrigger className="w-full sm:w-[160px]">
                       <SelectValue placeholder="Pago" />
                     </SelectTrigger>
                     <SelectContent>
@@ -374,7 +384,7 @@ export default function BudgetDashboard() {
                   </Select>
                    <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full md:w-auto justify-start text-left font-normal">
+                      <Button variant="outline" className="w-full sm:w-auto justify-start text-left font-normal">
                           {filters.dateRange?.from ? (
                               filters.dateRange.to ? (
                                   `${format(filters.dateRange.from, "LLL dd, y")} - ${format(filters.dateRange.to, "LLL dd, y")}`
@@ -395,6 +405,10 @@ export default function BudgetDashboard() {
                         />
                     </PopoverContent>
                 </Popover>
+                <Button variant="ghost" onClick={handleSetCurrentMonthFilter}>
+                  <CalendarClock className="mr-2 h-4 w-4" />
+                  Mes Actual
+                </Button>
                 <Button variant="ghost" onClick={handleClearFilters}>
                   <FilterX className="mr-2 h-4 w-4" />
                   Limpiar
