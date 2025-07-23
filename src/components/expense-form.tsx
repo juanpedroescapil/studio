@@ -40,7 +40,18 @@ const formSchema = z.object({
 type ExpenseFormValues = z.infer<typeof formSchema>;
 
 export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit }: ExpenseFormProps) {
-  const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
+  const form = useForm<ExpenseFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      description: '',
+      amount: 0,
+      date: new Date(),
+      category: 'Food',
+      paymentMethod: 'cash',
+      installmentsCount: 1,
+      interestRate: 0,
+    },
+  });
 
   useEffect(() => {
     // This effect runs only on the client, ensuring `new Date()` doesn't cause a hydration mismatch.
@@ -69,20 +80,6 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
       });
     }
   }, [isOpen, expenseToEdit, form]);
-
-
-  const form = useForm<ExpenseFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: '',
-      amount: 0,
-      date: new Date(),
-      category: 'Food',
-      paymentMethod: 'cash',
-      installmentsCount: 1,
-      interestRate: 0,
-    },
-  });
 
   const { toast } = useToast();
   const [isSuggestionLoading, startSuggestionTransition] = useTransition();
@@ -311,5 +308,3 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     </Dialog>
   );
 }
-
-    
