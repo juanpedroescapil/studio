@@ -56,7 +56,11 @@ export default function BudgetDashboard() {
         acc[month] = { expenses: [], subtotal: 0 };
       }
       acc[month].expenses.push(expense);
-      acc[month].subtotal += expense.amount;
+      if (expense.paymentMethod === 'credit-card' && expense.installments && expense.installments.count > 1) {
+        acc[month].subtotal += expense.installments.monthlyPayment;
+      } else {
+        acc[month].subtotal += expense.amount;
+      }
       return acc;
     }, {} as Record<string, { expenses: Expense[]; subtotal: number }>);
   }, [filteredExpenses]);
