@@ -14,6 +14,7 @@ type ExpenseTableProps = {
   groupedExpenses: Record<string, { expenses: Expense[]; subtotal: number }>;
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
+  onView: (expense: Expense) => void;
 };
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -27,7 +28,7 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
   Other: <div className="h-4 w-4" />,
 };
 
-export function ExpenseTable({ groupedExpenses, onEdit, onDelete }: ExpenseTableProps) {
+export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: ExpenseTableProps) {
     const months = Object.keys(groupedExpenses);
 
   return (
@@ -52,7 +53,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete }: ExpenseTable
                             <TableCell colSpan={2} className="text-right font-bold font-mono">${groupedExpenses[month].subtotal.toFixed(2)}</TableCell>
                         </TableRow>
                         {groupedExpenses[month].expenses.map(expense => (
-                            <TableRow key={expense.id}>
+                            <TableRow key={expense.id} onClick={() => onView(expense)} className="cursor-pointer">
                             <TableCell className="font-medium">{expense.description}</TableCell>
                             <TableCell>
                                 <Badge variant="outline" className="flex items-center gap-2 w-fit">
@@ -67,7 +68,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete }: ExpenseTable
                                 {expense.installments && expense.installments.count > 1 && (
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
                                                 <Info className="h-4 w-4 text-muted-foreground" />
                                             </Button>
                                         </PopoverTrigger>
@@ -83,7 +84,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete }: ExpenseTable
                                 )}
                             </TableCell>
                             <TableCell className="text-right font-mono">${expense.amount.toFixed(2)}</TableCell>
-                            <TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -92,6 +93,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete }: ExpenseTable
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => onView(expense)}>View Details</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => onDelete(expense.id)} className="text-destructive">Delete</DropdownMenuItem>
                                 </DropdownMenuContent>

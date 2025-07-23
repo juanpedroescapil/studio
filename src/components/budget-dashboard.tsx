@@ -14,6 +14,7 @@ import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
 import {toZonedTime} from "date-fns-tz";
+import { ExpenseDetail } from './expense-detail';
 
 const initialExpenses: Expense[] = [
   { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
@@ -28,6 +29,7 @@ export default function BudgetDashboard() {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -89,6 +91,14 @@ export default function BudgetDashboard() {
   const handleOpenForm = () => {
     setEditingExpense(undefined);
     setIsFormOpen(true);
+  }
+  
+  const handleViewExpense = (expense: Expense) => {
+    setSelectedExpense(expense);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedExpense(null);
   }
 
   const { totalExpenses, cashExpenses, cardExpenses } = useMemo(() => {
@@ -299,6 +309,7 @@ export default function BudgetDashboard() {
               groupedExpenses={groupedExpenses} 
               onEdit={handleOpenEditForm}
               onDelete={handleDeleteExpense}
+              onView={handleViewExpense}
             />
           </CardContent>
         </Card>
@@ -310,6 +321,13 @@ export default function BudgetDashboard() {
         onUpdateExpense={handleUpdateExpense}
         expenseToEdit={editingExpense}
       />
+      {selectedExpense && (
+          <ExpenseDetail
+              expense={selectedExpense}
+              isOpen={!!selectedExpense}
+              onOpenChange={handleCloseDetail}
+          />
+      )}
     </div>
   );
 }
