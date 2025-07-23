@@ -11,12 +11,12 @@ import {
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import { Expense } from "@/types";
+import { Expense, CreditCard } from "@/types";
 import { format } from "date-fns";
 import {
   Banknote,
   Car,
-  CreditCard,
+  CreditCard as CreditCardIcon,
   HeartPulse,
   Home,
   PiggyBank,
@@ -29,6 +29,7 @@ import {
 
 type ExpenseDetailProps = {
   expense: Expense;
+  creditCard?: CreditCard;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 };
@@ -47,6 +48,7 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
 
 export function ExpenseDetail({
   expense,
+  creditCard,
   isOpen,
   onOpenChange,
 }: ExpenseDetailProps) {
@@ -57,7 +59,8 @@ export function ExpenseDetail({
       case 'cash':
         return { icon: <Wallet className="h-4 w-4 text-green-600" />, label: 'Efectivo' };
       case 'credit-card':
-        return { icon: <CreditCard className="h-4 w-4 text-blue-600" />, label: 'Tarjeta de Crédito' };
+        const cardLabel = creditCard ? `${creditCard.name} (${creditCard.bank})` : 'Tarjeta de Crédito';
+        return { icon: <CreditCardIcon className="h-4 w-4 text-blue-600" />, label: cardLabel };
       case 'credit':
         return { icon: <Banknote className="h-4 w-4 text-purple-600" />, label: 'Crédito' };
       default:

@@ -3,10 +3,10 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Download, Upload, Wallet, CreditCard, TrendingUp, Landmark, Banknote } from 'lucide-react';
+import { Plus, Download, Upload, Wallet, CreditCard as CreditCardIcon, TrendingUp, Landmark, Banknote } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import { ExpenseTable } from './expense-table';
-import { Expense } from '@/types';
+import { Expense, CreditCard, Category } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
@@ -17,27 +17,35 @@ import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
 import { MainNav } from './main-nav';
 import { CategoryManager } from './category-manager';
+import { CreditCardManager } from './credit-card-manager';
 import { UserNav } from './user-nav';
 
+const initialCreditCards: CreditCard[] = [
+  { id: 'cc1', name: 'Visa Signature', bank: 'Banco Principal' },
+  { id: 'cc2', name: 'Mastercard Gold', bank: 'Otro Banco' },
+];
+
 const initialExpenses: Expense[] = [
-  { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
+  { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', creditCardId: 'cc1', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
   { id: '2', description: 'Alquiler mensual', amount: 1200, date: toZonedTime(new Date('2024-07-01T00:00:00Z'), 'UTC'), category: 'Vivienda', paymentMethod: 'cash' },
-  { id: '3', description: 'Nueva Laptop', amount: 1500, date: toZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Compras', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
+  { id: '3', description: 'Nueva Laptop', amount: 1500, date: toZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Compras', paymentMethod: 'credit-card', creditCardId: 'cc2', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
   { id: '4', description: 'Gasolina para el auto', amount: 50, date: toZonedTime(new Date('2024-07-10T00:00:00Z'), 'UTC'), category: 'Transporte', paymentMethod: 'cash' },
-  { id: '5', description: 'Cena con amigos', amount: 120, date: toZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
+  { id: '5', description: 'Cena con amigos', amount: 120, date: toZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', creditCardId: 'cc1', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
   { id: '6', description: 'Factura de electricidad', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Servicios', paymentMethod: 'cash' },
 ];
 
-const initialCategories = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Préstamos', 'Otros'];
+const initialCategories: Category[] = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Préstamos', 'Otros'];
 
 
 export default function BudgetDashboard() {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
-  const [categories, setCategories] = useState<string[]>(initialCategories);
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [creditCards, setCreditCards] = useState<CreditCard[]>(initialCreditCards);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isCategoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [isCreditCardManagerOpen, setCreditCardManagerOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -158,7 +166,7 @@ export default function BudgetDashboard() {
 
 
   const handleExport = useCallback(() => {
-    const header = "id,descripcion,monto,fecha,categoria,metodo_pago,cuotas_cantidad,cuotas_interes,cuotas_pago_mensual\n";
+    const header = "id,descripcion,monto,fecha,categoria,metodo_pago,tarjeta_id,cuotas_cantidad,cuotas_interes,cuotas_pago_mensual\n";
     const csvRows = expenses.map(e => {
       const row = [
         e.id,
@@ -167,6 +175,7 @@ export default function BudgetDashboard() {
         e.date.toISOString(),
         e.category,
         e.paymentMethod,
+        e.creditCardId ?? '',
         e.installments?.count ?? '',
         e.installments?.interestRate ?? '',
         e.installments?.monthlyPayment ?? ''
@@ -198,7 +207,7 @@ export default function BudgetDashboard() {
       const text = e.target?.result as string;
       const rows = text.split('\n').slice(1);
       const newExpenses: Expense[] = [];
-      const newCategories = new Set(categories);
+      const newCategoriesSet = new Set(categories);
       try {
         rows.forEach(rowStr => {
           if (!rowStr.trim()) return;
@@ -211,23 +220,24 @@ export default function BudgetDashboard() {
             date: new Date(columns[3]),
             category: category,
             paymentMethod: columns[5] as Expense['paymentMethod'],
+            creditCardId: columns[6] || undefined
           };
-          if ((expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && columns[6]) {
+          if ((expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && columns[7]) {
             expense.installments = {
-              count: parseInt(columns[6]),
-              interestRate: parseFloat(columns[7]),
-              monthlyPayment: parseFloat(columns[8]),
+              count: parseInt(columns[7]),
+              interestRate: parseFloat(columns[8]),
+              monthlyPayment: parseFloat(columns[9]),
             };
           }
           if (!isNaN(expense.amount) && expense.date.toString() !== 'Invalid Date') {
             newExpenses.push(expense);
-            if (!newCategories.has(category)) {
-              newCategories.add(category);
+            if (!newCategoriesSet.has(category)) {
+              newCategoriesSet.add(category);
             }
           }
         });
         setExpenses(prev => [...prev, ...newExpenses]);
-        setCategories(Array.from(newCategories).sort());
+        setCategories(Array.from(newCategoriesSet).sort());
         toast({ title: "Éxito", description: "Gastos importados exitosamente." });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Error al importar CSV. Por favor, revisa el formato del archivo." });
@@ -265,6 +275,7 @@ export default function BudgetDashboard() {
                     <UserNav
                       onAddExpenseClick={handleOpenForm}
                       onManageCategoriesClick={() => setCategoryManagerOpen(true)}
+                      onManageCreditCardsClick={() => setCreditCardManagerOpen(true)}
                     />
                 </div>
             </div>
@@ -295,7 +306,7 @@ export default function BudgetDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tarjeta de Crédito</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+              <CreditCardIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${cardExpenses.toFixed(2)}</div>
@@ -369,7 +380,8 @@ export default function BudgetDashboard() {
           </CardHeader>
           <CardContent>
             <ExpenseTable 
-              groupedExpenses={groupedExpenses} 
+              groupedExpenses={groupedExpenses}
+              creditCards={creditCards}
               onEdit={handleOpenEditForm}
               onDelete={handleDeleteExpense}
               onView={handleViewExpense}
@@ -384,6 +396,7 @@ export default function BudgetDashboard() {
         onUpdateExpense={handleUpdateExpense}
         expenseToEdit={editingExpense}
         categories={categories}
+        creditCards={creditCards}
         onCategoryAdded={(newCategory) => {
             if (!categories.includes(newCategory)) {
                 setCategories(prev => [...prev, newCategory].sort());
@@ -393,6 +406,7 @@ export default function BudgetDashboard() {
       {selectedExpense && (
           <ExpenseDetail
               expense={selectedExpense}
+              creditCard={creditCards.find(c => c.id === selectedExpense.creditCardId)}
               isOpen={!!selectedExpense}
               onOpenChange={handleCloseDetail}
           />
@@ -402,6 +416,12 @@ export default function BudgetDashboard() {
         onOpenChange={setCategoryManagerOpen}
         categories={categories}
         onCategoriesChange={setCategories}
+      />
+      <CreditCardManager
+        isOpen={isCreditCardManagerOpen}
+        onOpenChange={setCreditCardManagerOpen}
+        creditCards={creditCards}
+        onCreditCardsChange={setCreditCards}
       />
     </div>
   );

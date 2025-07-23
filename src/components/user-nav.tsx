@@ -11,14 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, CreditCard } from "lucide-react";
 
 type UserNavProps = {
   onAddExpenseClick: () => void;
   onManageCategoriesClick: () => void;
+  onManageCreditCardsClick: () => void;
 };
 
-export function UserNav({ onAddExpenseClick, onManageCategoriesClick }: UserNavProps) {
+export function UserNav({ onAddExpenseClick, onManageCategoriesClick, onManageCreditCardsClick }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -44,9 +45,13 @@ export function UserNav({ onAddExpenseClick, onManageCategoriesClick }: UserNavP
             <Plus className="mr-2 h-4 w-4" />
             <span>Agregar Gasto</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onManageCategoriesClick}>
+           <DropdownMenuItem onClick={onManageCategoriesClick}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Administrar Categorías</span>
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={onManageCreditCardsClick}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            <span>Administrar Tarjetas</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

@@ -1,3 +1,9 @@
+export type CreditCard = {
+  id: string;
+  name: string;
+  bank: string;
+};
+
 export type Expense = {
   id: string;
   description: string;
@@ -5,12 +11,12 @@ export type Expense = {
   date: Date;
   category: string;
   paymentMethod: 'cash' | 'credit-card' | 'credit';
+  creditCardId?: string; 
   installments?: {
     count: number;
     interestRate: number;
     monthlyPayment: number;
   };
-  // Internal properties for expanded expenses
   originalId?: string;
   isInstallment?: boolean;
 };
@@ -18,5 +24,3 @@ export type Expense = {
 export type Category = string;
 
 export const categories: Category[] = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Préstamos', 'Otros'];
-
-    

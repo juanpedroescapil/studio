@@ -5,13 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, ShoppingCart, Utensils, Home, Car, Tv, HeartPulse, Zap, Wallet, CreditCard, Info, Banknote, PiggyBank } from 'lucide-react';
+import { MoreHorizontal, ShoppingCart, Utensils, Home, Car, Tv, HeartPulse, Zap, Wallet, CreditCard as CreditCardIcon, Info, Banknote, PiggyBank } from 'lucide-react';
 import { format } from 'date-fns';
-import { Expense } from '@/types';
+import { Expense, CreditCard } from '@/types';
 import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 
 type ExpenseTableProps = {
   groupedExpenses: Record<string, { expenses: Expense[]; subtotal: number }>;
+  creditCards: CreditCard[];
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
   onView: (expense: Expense) => void;
@@ -31,19 +32,23 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
 
 const paymentMethodIcons: { [key: string]: React.ReactNode } = {
     cash: <Wallet className="h-4 w-4 text-green-600" />,
-    'credit-card': <CreditCard className="h-4 w-4 text-blue-600" />,
+    'credit-card': <CreditCardIcon className="h-4 w-4 text-blue-600" />,
     credit: <Banknote className="h-4 w-4 text-purple-600" />,
 };
 
-const paymentMethodLabels: { [key: string]: string } = {
-    cash: 'Efectivo',
-    'credit-card': 'Tarjeta de Crédito',
-    credit: 'Crédito',
-};
 
-
-export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: ExpenseTableProps) {
+export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, onView }: ExpenseTableProps) {
     const months = Object.keys(groupedExpenses);
+
+    const getPaymentMethodLabel = (expense: Expense) => {
+        if (expense.paymentMethod === 'credit-card') {
+            const card = creditCards.find(c => c.id === expense.creditCardId);
+            return card ? `${card.name}` : 'Tarjeta de Crédito';
+        }
+        if (expense.paymentMethod === 'cash') return 'Efectivo';
+        if (expense.paymentMethod === 'credit') return 'Crédito';
+        return '';
+    }
 
   return (
     <div className="rounded-md border">
@@ -78,7 +83,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                             <TableCell>{format(expense.date, 'MMM dd, yyyy')}</TableCell>
                             <TableCell className="flex items-center gap-2">
                                 {paymentMethodIcons[expense.paymentMethod]}
-                                <span className="capitalize">{paymentMethodLabels[expense.paymentMethod]}</span>
+                                <span className="capitalize">{getPaymentMethodLabel(expense)}</span>
                                 {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installments && expense.installments.count > 1 && (
                                     <Popover>
                                         <PopoverTrigger asChild>

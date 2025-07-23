@@ -14,7 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Lightbulb, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Expense } from '@/types';
+import { Expense, Category, CreditCard } from '@/types';
 import { getCategorySuggestion } from '@/lib/actions';
 import { useToast } from "@/hooks/use-toast"
 
@@ -25,7 +25,8 @@ type ExpenseFormProps = {
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onUpdateExpense: (expense: Expense) => void;
   expenseToEdit?: Expense;
-  categories: string[];
+  categories: Category[];
+  creditCards: CreditCard[];
   onCategoryAdded: (category: string) => void;
 };
 
@@ -36,51 +37,66 @@ const formSchema = z.object({
   category: z.string().min(1, 'La categoría es requerida'),
   newCategory: z.string().optional(),
   paymentMethod: z.enum(['cash', 'credit-card', 'credit']),
+  creditCardId: z.string().optional(),
   installmentsCount: z.coerce.number().optional(),
   interestRate: z.coerce.number().optional(),
 });
 
 type ExpenseFormValues = z.infer<typeof formSchema>;
 
-export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit, categories, onCategoryAdded }: ExpenseFormProps) {
+export function ExpenseForm({ 
+  isOpen, 
+  onOpenChange, 
+  onAddExpense, 
+  onUpdateExpense, 
+  expenseToEdit, 
+  categories, 
+  creditCards,
+  onCategoryAdded 
+}: ExpenseFormProps) {
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
       amount: 0,
       date: new Date(),
-      category: categories[0] || '',
+      category: '',
       newCategory: '',
       paymentMethod: 'cash',
+      creditCardId: undefined,
       installmentsCount: 1,
       interestRate: 0,
     },
   });
 
   useEffect(() => {
-    if (isOpen && !expenseToEdit) {
-      form.reset({
-        date: new Date(),
-        description: '',
-        amount: 0,
-        category: categories[0] || '',
-        newCategory: '',
-        paymentMethod: 'cash',
-        installmentsCount: 1,
-        interestRate: 0,
-      });
-    } else if (isOpen && expenseToEdit) {
-      form.reset({
-        description: expenseToEdit.description,
-        amount: expenseToEdit.amount,
-        date: expenseToEdit.date,
-        category: expenseToEdit.category,
-        paymentMethod: expenseToEdit.paymentMethod,
-        installmentsCount: expenseToEdit.installments?.count,
-        interestRate: expenseToEdit.installments?.interestRate,
-      });
+    if (isOpen) {
+      if (expenseToEdit) {
+        form.reset({
+          description: expenseToEdit.description,
+          amount: expenseToEdit.amount,
+          date: expenseToEdit.date,
+          category: expenseToEdit.category,
+          paymentMethod: expenseToEdit.paymentMethod,
+          creditCardId: expenseToEdit.creditCardId,
+          installmentsCount: expenseToEdit.installments?.count,
+          interestRate: expenseToEdit.installments?.interestRate,
+        });
+      } else {
+        form.reset({
+          date: new Date(),
+          description: '',
+          amount: 0,
+          category: categories[0] || '',
+          newCategory: '',
+          paymentMethod: 'cash',
+          creditCardId: creditCards[0]?.id || undefined,
+          installmentsCount: 1,
+          interestRate: 0,
+        });
+      }
     }
-  }, [isOpen, expenseToEdit, form, categories]);
+  }, [isOpen, expenseToEdit, form, categories, creditCards]);
 
   const { toast } = useToast();
   const [isSuggestionLoading, startSuggestionTransition] = useTransition();
@@ -131,6 +147,11 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
             return;
         }
     }
+    
+    if (values.paymentMethod === 'credit-card' && !values.creditCardId) {
+        form.setError('creditCardId', { type: 'manual', message: 'Por favor, selecciona una tarjeta.' });
+        return;
+    }
 
     const expenseData: Omit<Expense, 'id'> = {
       description: values.description,
@@ -138,6 +159,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
       date: values.date,
       category: finalCategory,
       paymentMethod: values.paymentMethod,
+      creditCardId: values.paymentMethod === 'credit-card' ? values.creditCardId : undefined,
     };
 
     if (values.paymentMethod === 'credit-card' || values.paymentMethod === 'credit') {
@@ -236,7 +258,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 )}
                 />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
                 name="category"
@@ -275,29 +297,54 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                     )}
                   />
                 )}
-                <FormField
-                control={form.control}
-                name="paymentMethod"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Método de Pago</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un método" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="cash">Efectivo</SelectItem>
-                        <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
-                        <SelectItem value="credit">Crédito</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
             </div>
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                  <FormItem>
+                  <FormLabel>Método de Pago</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                      <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un método" />
+                      </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                      <SelectItem value="cash">Efectivo</SelectItem>
+                      <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
+                      <SelectItem value="credit">Crédito</SelectItem>
+                      </SelectContent>
+                  </Select>
+                  <FormMessage />
+                  </FormItem>
+              )}
+            />
+
+            {paymentMethod === 'credit-card' && (
+                 <FormField
+                    control={form.control}
+                    name="creditCardId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Tarjeta</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona una tarjeta" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {creditCards.map(card => (
+                                <SelectItem key={card.id} value={card.id}>{card.name} - {card.bank}</SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+            )}
 
             {(paymentMethod === 'credit-card' || paymentMethod === 'credit') && (
               <div className="grid grid-cols-2 gap-4 border-t pt-4">
