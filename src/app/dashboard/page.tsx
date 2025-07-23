@@ -1,8 +1,8 @@
 "use client";
-import { Landmark, Download, Upload, Plus } from "lucide-react";
+import { Landmark } from "lucide-react";
 import MonthlyBreakdown from "@/components/monthly-breakdown";
 import { MainNav } from "@/components/main-nav";
-import { Button } from "@/components/ui/button";
+import { UserNav } from "@/components/user-nav";
 
 export default function DashboardPage() {
   return (
@@ -16,15 +16,7 @@ export default function DashboardPage() {
             </div>
             <MainNav className="mx-6" />
             <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" >
-                    <Upload className="mr-2" /> Importar
-                </Button>
-                <Button variant="outline" size="sm" >
-                    <Download className="mr-2" /> Exportar
-                </Button>
-                <Button size="sm">
-                    <Plus className="mr-2" /> Agregar Gasto
-                </Button>
+              <UserNav />
             </div>
           </div>
         </div>

@@ -26,6 +26,7 @@ type ExpenseFormProps = {
   onUpdateExpense: (expense: Expense) => void;
   expenseToEdit?: Expense;
   categories: string[];
+  onCategoryAdded: (category: string) => void;
 };
 
 const formSchema = z.object({
@@ -41,7 +42,7 @@ const formSchema = z.object({
 
 type ExpenseFormValues = z.infer<typeof formSchema>;
 
-export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit, categories }: ExpenseFormProps) {
+export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit, categories, onCategoryAdded }: ExpenseFormProps) {
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -119,10 +120,16 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
   };
 
   const onSubmit = (values: ExpenseFormValues) => {
-    const finalCategory = values.category === 'new' ? values.newCategory : values.category;
-    if (!finalCategory || finalCategory.trim() === '') {
-        form.setError('category', { type: 'manual', message: 'La categoría es requerida.' });
-        return;
+    let finalCategory = values.category;
+    if (values.category === 'new') {
+        const newCategory = values.newCategory?.trim();
+        if (newCategory) {
+            onCategoryAdded(newCategory);
+            finalCategory = newCategory;
+        } else {
+            form.setError('newCategory', { type: 'manual', message: 'El nombre de la categoría no puede estar vacío.' });
+            return;
+        }
     }
 
     const expenseData: Omit<Expense, 'id'> = {
@@ -332,5 +339,3 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     </Dialog>
   );
 }
-
-    

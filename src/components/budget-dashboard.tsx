@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast"
 import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
 import { MainNav } from './main-nav';
+import { CategoryManager } from './category-manager';
+import { UserNav } from './user-nav';
 
 const initialExpenses: Expense[] = [
   { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
@@ -35,6 +37,8 @@ export default function BudgetDashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [isCategoryManagerOpen, setCategoryManagerOpen] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -258,9 +262,10 @@ export default function BudgetDashboard() {
                     <Button variant="outline" size="sm" onClick={handleExport}>
                         <Download className="mr-2" /> Exportar
                     </Button>
-                    <Button size="sm" onClick={handleOpenForm}>
-                        <Plus className="mr-2" /> Agregar Gasto
-                    </Button>
+                    <UserNav
+                      onAddExpenseClick={handleOpenForm}
+                      onManageCategoriesClick={() => setCategoryManagerOpen(true)}
+                    />
                 </div>
             </div>
         </div>
@@ -379,6 +384,11 @@ export default function BudgetDashboard() {
         onUpdateExpense={handleUpdateExpense}
         expenseToEdit={editingExpense}
         categories={categories}
+        onCategoryAdded={(newCategory) => {
+            if (!categories.includes(newCategory)) {
+                setCategories(prev => [...prev, newCategory].sort());
+            }
+        }}
       />
       {selectedExpense && (
           <ExpenseDetail
@@ -387,8 +397,12 @@ export default function BudgetDashboard() {
               onOpenChange={handleCloseDetail}
           />
       )}
+      <CategoryManager
+        isOpen={isCategoryManagerOpen}
+        onOpenChange={setCategoryManagerOpen}
+        categories={categories}
+        onCategoriesChange={setCategories}
+      />
     </div>
   );
 }
-
-    
