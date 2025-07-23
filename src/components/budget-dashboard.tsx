@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useCallback, useRef } from 'react';
@@ -198,6 +199,10 @@ export default function BudgetDashboard() {
      toast({ title: "Éxito", description: "Gastos exportados a CSV." });
   }, [expenses, toast]);
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -266,14 +271,12 @@ export default function BudgetDashboard() {
                       accept=".csv"
                       onChange={handleImport}
                     />
-                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2" /> Importar
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleExport}>
-                        <Download className="mr-2" /> Exportar
+                    <Button onClick={handleOpenForm}>
+                        <Plus className="mr-2" /> Agregar Gasto
                     </Button>
                     <UserNav
-                      onAddExpenseClick={handleOpenForm}
+                      onImportClick={handleImportClick}
+                      onExportClick={handleExport}
                       onManageCategoriesClick={() => setCategoryManagerOpen(true)}
                       onManageCreditCardsClick={() => setCreditCardManagerOpen(true)}
                     />
@@ -426,3 +429,5 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -11,15 +12,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Settings, CreditCard } from "lucide-react";
+import { Settings, CreditCard, Upload, Download } from "lucide-react";
 
 type UserNavProps = {
-  onAddExpenseClick: () => void;
+  onImportClick: () => void;
+  onExportClick: () => void;
   onManageCategoriesClick: () => void;
   onManageCreditCardsClick: () => void;
 };
 
-export function UserNav({ onAddExpenseClick, onManageCategoriesClick, onManageCreditCardsClick }: UserNavProps) {
+export function UserNav({ onImportClick, onExportClick, onManageCategoriesClick, onManageCreditCardsClick }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,9 +43,13 @@ export function UserNav({ onAddExpenseClick, onManageCategoriesClick, onManageCr
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={onAddExpenseClick}>
-            <Plus className="mr-2 h-4 w-4" />
-            <span>Agregar Gasto</span>
+           <DropdownMenuItem onClick={onImportClick}>
+            <Upload className="mr-2 h-4 w-4" />
+            <span>Importar CSV</span>
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={onExportClick}>
+            <Download className="mr-2 h-4 w-4" />
+            <span>Exportar CSV</span>
           </DropdownMenuItem>
            <DropdownMenuItem onClick={onManageCategoriesClick}>
             <Settings className="mr-2 h-4 w-4" />
@@ -58,3 +64,5 @@ export function UserNav({ onAddExpenseClick, onManageCategoriesClick, onManageCr
     </DropdownMenu>
   );
 }
+
+    
