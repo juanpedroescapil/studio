@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { format, addMonths } from 'date-fns';
+import { format, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
 import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
@@ -65,10 +65,14 @@ export default function BudgetDashboard() {
     return expandedExpenses.filter(expense => {
       const categoryMatch = filters.category === 'all' || expense.category === filters.category;
       const paymentMethodMatch = filters.paymentMethod === 'all' || expense.paymentMethod === filters.paymentMethod;
-      const dateMatch = !filters.dateRange || (
-        (!filters.dateRange.from || expense.date >= filters.dateRange.from) &&
-        (!filters.dateRange.to || expense.date <= filters.dateRange.to)
-      );
+      
+      let dateMatch = true;
+      if (filters.dateRange?.from) {
+        const fromDate = filters.dateRange.from;
+        const toDate = filters.dateRange.to || endOfMonth(fromDate);
+        dateMatch = expense.date >= startOfMonth(fromDate) && expense.date <= toDate;
+      }
+
       return categoryMatch && paymentMethodMatch && dateMatch;
     }).sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [expandedExpenses, filters]);
@@ -307,7 +311,7 @@ export default function BudgetDashboard() {
                               filters.dateRange.to ? (
                                   `${format(filters.dateRange.from, "LLL dd, y")} - ${format(filters.dateRange.to, "LLL dd, y")}`
                               ) : (
-                                  format(filters.dateRange.from, "LLL dd, y")
+                                  format(filters.dateRange.from, "MMMM yyyy")
                               )
                           ) : (
                               <span>Pick a date range</span>
@@ -353,5 +357,7 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    
 
     
