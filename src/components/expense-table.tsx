@@ -9,6 +9,7 @@ import { MoreHorizontal, ShoppingCart, Utensils, Home, Car, Tv, HeartPulse, Zap,
 import { format } from 'date-fns';
 import { Expense, CreditCard } from '@/types';
 import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
+import { cn } from '@/lib/utils';
 
 type ExpenseTableProps = {
   groupedExpenses: Record<string, { expenses: Expense[]; subtotal: number }>;
@@ -35,6 +36,8 @@ const paymentMethodIcons: { [key: string]: React.ReactNode } = {
     'credit-card': <CreditCardIcon className="h-4 w-4 text-blue-600" />,
     credit: <Banknote className="h-4 w-4 text-purple-600" />,
 };
+
+const monthColors = ['text-chart-3', 'text-chart-1', 'text-chart-2', 'text-chart-4', 'text-chart-6'];
 
 
 export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, onView }: ExpenseTableProps) {
@@ -65,11 +68,11 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
             </TableHeader>
             <TableBody>
                 {months.length > 0 ? (
-                 months.map(month => (
+                 months.map((month, index) => (
                     <React.Fragment key={month}>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
-                            <TableCell colSpan={4} className="font-bold">{month}</TableCell>
-                            <TableCell colSpan={2} className="text-right font-bold font-mono">${groupedExpenses[month].subtotal.toFixed(2)}</TableCell>
+                            <TableCell colSpan={4} className={cn("font-bold", monthColors[index % monthColors.length])}>{month}</TableCell>
+                            <TableCell colSpan={2} className={cn("text-right font-bold font-mono", monthColors[index % monthColors.length])}>${groupedExpenses[month].subtotal.toFixed(2)}</TableCell>
                         </TableRow>
                         {groupedExpenses[month].expenses.map(expense => (
                             <TableRow key={expense.id} onClick={() => onView(expense)} className="cursor-pointer">

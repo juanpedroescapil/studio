@@ -32,6 +32,7 @@ body {
     --chart-3: 0 100% 50%; /* rojo */
     --chart-4: 204 100% 50%; /* celeste */
     --chart-5: 270 78% 55%; /* violeta */
+    --chart-6: 24 95% 53%; /* naranja */
     --radius: 0.5rem;
   }
   .dark {
@@ -59,6 +60,7 @@ body {
     --chart-3: 0 100% 50%; /* rojo */
     --chart-4: 204 100% 50%; /* celeste */
     --chart-5: 270 78% 55%; /* violeta */
+    --chart-6: 24 95% 53%; /* naranja */
   }
 }
 
