@@ -28,8 +28,8 @@ type ExpenseFormProps = {
 };
 
 const formSchema = z.object({
-  description: z.string().min(3, 'Description must be at least 3 characters'),
-  amount: z.coerce.number().positive('Amount must be positive'),
+  description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres'),
+  amount: z.coerce.number().positive('El monto debe ser positivo'),
   date: z.date(),
   category: z.enum(categories),
   paymentMethod: z.enum(['cash', 'credit-card']),
@@ -46,7 +46,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
       description: '',
       amount: 0,
       date: new Date(),
-      category: 'Food',
+      category: 'Comida',
       paymentMethod: 'cash',
       installmentsCount: 1,
       interestRate: 0,
@@ -54,21 +54,17 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
   });
 
   useEffect(() => {
-    // This effect runs only on the client, ensuring `new Date()` doesn't cause a hydration mismatch.
     if (isOpen && !expenseToEdit) {
-      // When the form opens for a new expense, set the date.
       form.reset({
-        ...form.getValues(),
         date: new Date(),
         description: '',
         amount: 0,
-        category: 'Food',
+        category: 'Comida',
         paymentMethod: 'cash',
         installmentsCount: 1,
         interestRate: 0,
       });
     } else if (isOpen && expenseToEdit) {
-      // When the form opens for an existing expense, populate it with the expense data.
       form.reset({
         description: expenseToEdit.description,
         amount: expenseToEdit.amount,
@@ -101,8 +97,8 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     if(!description) {
         toast({
             variant: "destructive",
-            title: "Uh oh!",
-            description: "Please enter a description first.",
+            title: "¡Atención!",
+            description: "Por favor, ingresa una descripción primero.",
         })
         return;
     }
@@ -110,9 +106,9 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         const result = await getCategorySuggestion(description);
         if (result.suggestedCategory && categories.includes(result.suggestedCategory as Category)) {
             form.setValue("category", result.suggestedCategory as Category);
-             toast({ title: "Suggestion", description: `We suggest the category: ${result.suggestedCategory}` });
+             toast({ title: "Sugerencia", description: `Te sugerimos la categoría: ${result.suggestedCategory}` });
         } else {
-            toast({ variant: "destructive", title: "Suggestion Failed", description: "Could not suggest a category for this expense." });
+            toast({ variant: "destructive", title: "Sugerencia Fallida", description: "No se pudo sugerir una categoría para este gasto." });
         }
     });
   };
@@ -134,6 +130,8 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         interestRate,
         monthlyPayment: calculateMonthlyPayment(values.amount, interestRate, count),
       };
+      // For credit card purchases, the amount should be the total amount, not the monthly payment.
+      // The monthly payment is just for calculation. The total amount reflects the debt.
     }
     
     if(expenseToEdit) {
@@ -148,9 +146,9 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{expenseToEdit ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
+          <DialogTitle>{expenseToEdit ? 'Editar Gasto' : 'Agregar Nuevo Gasto'}</DialogTitle>
           <DialogDescription>
-            {expenseToEdit ? 'Update the details of your expense.' : 'Enter the details of your new expense.'}
+            {expenseToEdit ? 'Actualiza los detalles de tu gasto.' : 'Ingresa los detalles de tu nuevo gasto.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -160,10 +158,10 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Descripción</FormLabel>
                    <div className="flex items-center gap-2">
                     <FormControl>
-                      <Input placeholder="e.g. Coffee with friends" {...field} />
+                      <Input placeholder="Ej: Café con amigos" {...field} />
                     </FormControl>
                     <Button type="button" variant="outline" size="icon" onClick={handleSuggestCategory} disabled={isSuggestionLoading}>
                         {isSuggestionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
@@ -179,7 +177,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 name="amount"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Monto</FormLabel>
                     <FormControl>
                         <Input type="number" placeholder="0.00" {...field} />
                     </FormControl>
@@ -192,7 +190,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 name="date"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Fecha</FormLabel>
                     <Popover>
                         <PopoverTrigger asChild>
                         <FormControl>
@@ -203,7 +201,7 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                                 !field.value && 'text-muted-foreground'
                             )}
                             >
-                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                            {field.value ? format(field.value, 'PPP') : <span>Elige una fecha</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                         </FormControl>
@@ -228,11 +226,11 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 name="category"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Categoría</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder="Selecciona una categoría" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -250,16 +248,16 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                 name="paymentMethod"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
+                    <FormLabel>Método de Pago</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a method" />
+                            <SelectValue placeholder="Selecciona un método" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="credit-card">Credit Card</SelectItem>
+                        <SelectItem value="cash">Efectivo</SelectItem>
+                        <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -275,9 +273,9 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                   name="installmentsCount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Installments</FormLabel>
+                      <FormLabel>Cuotas</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 12" {...field} />
+                        <Input type="number" placeholder="Ej: 12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -288,9 +286,9 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                   name="interestRate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Interest Rate (%)</FormLabel>
+                      <FormLabel>Tasa de Interés (%)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="e.g., 5" {...field} />
+                        <Input type="number" placeholder="Ej: 5" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -299,8 +297,8 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
               </div>
             )}
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit">{expenseToEdit ? 'Save Changes' : 'Add Expense'}</Button>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button type="submit">{expenseToEdit ? 'Guardar Cambios' : 'Agregar Gasto'}</Button>
             </DialogFooter>
           </form>
         </Form>

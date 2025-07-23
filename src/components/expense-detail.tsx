@@ -32,14 +32,14 @@ type ExpenseDetailProps = {
 };
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
-  Food: <Utensils className="h-4 w-4" />,
-  Shopping: <ShoppingCart className="h-4 w-4" />,
-  Housing: <Home className="h-4 w-4" />,
-  Transport: <Car className="h-4 w-4" />,
-  Entertainment: <Tv className="h-4 w-4" />,
-  Health: <HeartPulse className="h-4 w-4" />,
-  Utilities: <Zap className="h-4 w-4" />,
-  Other: <div className="h-4 w-4" />,
+  Comida: <Utensils className="h-4 w-4" />,
+  Compras: <ShoppingCart className="h-4 w-4" />,
+  Vivienda: <Home className="h-4 w-4" />,
+  Transporte: <Car className="h-4 w-4" />,
+  Entretenimiento: <Tv className="h-4 w-4" />,
+  Salud: <HeartPulse className="h-4 w-4" />,
+  Servicios: <Zap className="h-4 w-4" />,
+  Otros: <div className="h-4 w-4" />,
 };
 
 export function ExpenseDetail({
@@ -53,33 +53,33 @@ export function ExpenseDetail({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Expense Details</DialogTitle>
+          <DialogTitle>Detalles del Gasto</DialogTitle>
           <DialogDescription>
-            Detailed information about your expense.
+            Información detallada sobre tu gasto.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Description</span>
+            <span className="text-muted-foreground">Descripción</span>
             <span className="font-medium">{expense.description}</span>
           </div>
           <Separator />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Amount</span>
+            <span className="text-muted-foreground">Monto</span>
             <span className="font-bold text-lg">
               ${expense.amount.toFixed(2)}
             </span>
           </div>
           <Separator />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Date</span>
+            <span className="text-muted-foreground">Fecha</span>
             <span className="font-medium">
               {format(expense.date, "PPP")}
             </span>
           </div>
           <Separator />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Category</span>
+            <span className="text-muted-foreground">Categoría</span>
             <Badge variant="outline" className="flex items-center gap-2">
               {categoryIcons[expense.category]}
               {expense.category}
@@ -87,7 +87,7 @@ export function ExpenseDetail({
           </div>
           <Separator />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Payment Method</span>
+            <span className="text-muted-foreground">Método de Pago</span>
             <div className="flex items-center gap-2">
               {expense.paymentMethod === "cash" ? (
                 <Wallet className="h-4 w-4 text-green-600" />
@@ -95,7 +95,7 @@ export function ExpenseDetail({
                 <CreditCard className="h-4 w-4 text-blue-600" />
               )}
               <span className="capitalize">
-                {expense.paymentMethod.replace("-", " ")}
+                {expense.paymentMethod === 'cash' ? 'Efectivo' : 'Tarjeta de Crédito'}
               </span>
             </div>
           </div>
@@ -103,17 +103,17 @@ export function ExpenseDetail({
             <>
               <Separator />
               <div className="space-y-2">
-                  <h4 className="font-medium">Installment Details</h4>
+                  <h4 className="font-medium">Detalles de Cuotas</h4>
                   <div className="flex justify-between items-center pl-4">
-                      <span className="text-muted-foreground">Installments</span>
+                      <span className="text-muted-foreground">Cuotas</span>
                       <span className="font-medium">{expense.installments.count}</span>
                   </div>
                    <div className="flex justify-between items-center pl-4">
-                      <span className="text-muted-foreground">Interest Rate</span>
+                      <span className="text-muted-foreground">Tasa de Interés</span>
                       <span className="font-medium">{expense.installments.interestRate}%</span>
                   </div>
                    <div className="flex justify-between items-center pl-4">
-                      <span className="text-muted-foreground">Monthly Payment</span>
+                      <span className="text-muted-foreground">Pago Mensual</span>
                       <span className="font-medium">${expense.installments.monthlyPayment.toFixed(2)}</span>
                   </div>
               </div>
@@ -121,7 +121,7 @@ export function ExpenseDetail({
           )}
         </div>
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

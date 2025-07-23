@@ -18,14 +18,14 @@ type ExpenseTableProps = {
 };
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
-  Food: <Utensils className="h-4 w-4" />,
-  Shopping: <ShoppingCart className="h-4 w-4" />,
-  Housing: <Home className="h-4 w-4" />,
-  Transport: <Car className="h-4 w-4" />,
-  Entertainment: <Tv className="h-4 w-4" />,
-  Health: <HeartPulse className="h-4 w-4" />,
-  Utilities: <Zap className="h-4 w-4" />,
-  Other: <div className="h-4 w-4" />,
+  Comida: <Utensils className="h-4 w-4" />,
+  Compras: <ShoppingCart className="h-4 w-4" />,
+  Vivienda: <Home className="h-4 w-4" />,
+  Transporte: <Car className="h-4 w-4" />,
+  Entretenimiento: <Tv className="h-4 w-4" />,
+  Salud: <HeartPulse className="h-4 w-4" />,
+  Servicios: <Zap className="h-4 w-4" />,
+  Otros: <div className="h-4 w-4" />,
 };
 
 export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: ExpenseTableProps) {
@@ -36,11 +36,11 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
         <Table>
             <TableHeader>
                 <TableRow>
-                <TableHead className="w-[250px]">Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-[250px]">Descripción</TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Pago</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
             </TableHeader>
@@ -64,7 +64,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                             <TableCell>{format(expense.date, 'MMM dd, yyyy')}</TableCell>
                             <TableCell className="flex items-center gap-2">
                                 {expense.paymentMethod === 'cash' ? <Wallet className="h-4 w-4 text-green-600" /> : <CreditCard className="h-4 w-4 text-blue-600" />}
-                                <span className="capitalize">{expense.paymentMethod.replace('-', ' ')}</span>
+                                <span className="capitalize">{expense.paymentMethod === 'cash' ? 'Efectivo' : 'Tarjeta de Crédito'}</span>
                                 {expense.installments && expense.installments.count > 1 && (
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -74,11 +74,11 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                                         </PopoverTrigger>
                                         <PopoverContent className="w-60">
                                             <div className="grid gap-2 text-sm">
-                                                <div className="font-semibold">Installment Details</div>
-                                                <div className="flex justify-between"><span>Total Amount:</span> <span>${(expense.installments.monthlyPayment * expense.installments.count).toFixed(2)}</span></div>
-                                                <div className="flex justify-between"><span>Installments:</span> <span>{expense.installments.count}</span></div>
-                                                <div className="flex justify-between"><span>Interest Rate:</span> <span>{expense.installments.interestRate}%</span></div>
-                                                <div className="flex justify-between"><span>Monthly:</span> <span>${expense.installments.monthlyPayment.toFixed(2)}</span></div>
+                                                <div className="font-semibold">Detalles de Cuotas</div>
+                                                <div className="flex justify-between"><span>Monto Total:</span> <span>${(expense.installments.monthlyPayment * expense.installments.count).toFixed(2)}</span></div>
+                                                <div className="flex justify-between"><span>Cuotas:</span> <span>{expense.installments.count}</span></div>
+                                                <div className="flex justify-between"><span>Tasa de Interés:</span> <span>{expense.installments.interestRate}%</span></div>
+                                                <div className="flex justify-between"><span>Mensual:</span> <span>${expense.installments.monthlyPayment.toFixed(2)}</span></div>
                                             </div>
                                         </PopoverContent>
                                     </Popover>
@@ -89,14 +89,14 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="h-8 w-8 p-0" disabled={expense.isInstallment}>
-                                    <span className="sr-only">Open menu</span>
+                                    <span className="sr-only">Abrir menú</span>
                                     <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => onView(expense)}>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onEdit(expense)}>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onDelete(expense.originalId || expense.id)} className="text-destructive">Delete</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onView(expense)}>Ver Detalles</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onEdit(expense)}>Editar</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onDelete(expense.originalId || expense.id)} className="text-destructive">Eliminar</DropdownMenuItem>
                                 </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
@@ -107,7 +107,7 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
                 ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
-                    No expenses found.
+                    No se encontraron gastos.
                     </TableCell>
                 </TableRow>
                 )}
@@ -116,5 +116,3 @@ export function ExpenseTable({ groupedExpenses, onEdit, onDelete, onView }: Expe
     </div>
   );
 }
-
-    

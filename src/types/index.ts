@@ -15,8 +15,6 @@ export type Expense = {
   isInstallment?: boolean;
 };
 
-export type Category = 'Food' | 'Transport' | 'Housing' | 'Entertainment' | 'Shopping' | 'Utilities' | 'Health' | 'Other';
+export type Category = 'Comida' | 'Transporte' | 'Vivienda' | 'Entretenimiento' | 'Compras' | 'Servicios' | 'Salud' | 'Otros';
 
-export const categories: Category[] = ['Food', 'Transport', 'Housing', 'Entertainment', 'Shopping', 'Utilities', 'Health', 'Other'];
-
-    
+export const categories: Category[] = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Otros'];

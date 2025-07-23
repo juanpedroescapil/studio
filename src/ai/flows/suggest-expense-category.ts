@@ -1,17 +1,17 @@
 'use server';
 
 /**
- * @fileOverview Expense category suggestion flow.
+ * @fileOverview Flujo de sugerencia de categoría de gastos.
  *
- * This file defines a Genkit flow that suggests relevant expense categories
- * based on a description of the transaction. It exports:
+ * Este archivo define un flujo de Genkit que sugiere categorías de gastos relevantes
+ * basado en la descripción de la transacción. Exporta:
  *
- * - `suggestExpenseCategory`: An async function that takes a transaction
- *   description and returns a suggested expense category.
- * - `SuggestExpenseCategoryInput`: The input type for the
- *   `suggestExpenseCategory` function.
- * - `SuggestExpenseCategoryOutput`: The output type for the
- *   `suggestExpenseCategory` function.
+ * - `suggestExpenseCategory`: Una función asíncrona que toma una descripción de
+ *   transacción y devuelve una categoría de gasto sugerida.
+ * - `SuggestExpenseCategoryInput`: El tipo de entrada para la función
+ *   `suggestExpenseCategory`.
+ * - `SuggestExpenseCategoryOutput`: El tipo de salida para la función
+ *   `suggestExpenseCategory`.
  */
 
 import {ai} from '@/ai/genkit';
@@ -20,7 +20,7 @@ import {z} from 'genkit';
 const SuggestExpenseCategoryInputSchema = z.object({
   transactionDescription: z
     .string()
-    .describe('A description of the transaction for which to suggest a category.'),
+    .describe('Una descripción de la transacción para la cual sugerir una categoría.'),
 });
 export type SuggestExpenseCategoryInput = z.infer<
   typeof SuggestExpenseCategoryInputSchema
@@ -29,7 +29,7 @@ export type SuggestExpenseCategoryInput = z.infer<
 const SuggestExpenseCategoryOutputSchema = z.object({
   suggestedCategory: z
     .string()
-    .describe('The suggested expense category for the transaction.'),
+    .describe('La categoría de gasto sugerida para la transacción.'),
 });
 export type SuggestExpenseCategoryOutput = z.infer<
   typeof SuggestExpenseCategoryOutputSchema
@@ -45,7 +45,7 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: {schema: SuggestExpenseCategoryInputSchema},
   output: {schema: SuggestExpenseCategoryOutputSchema},
-  prompt: `Given the following transaction description, suggest a relevant expense category:\n\nTransaction Description: {{{transactionDescription}}}\n\nSuggested Category:`, config: {
+  prompt: `Dada la siguiente descripción de la transacción, sugiere una categoría de gasto relevante en español de esta lista: Comida, Transporte, Vivienda, Entretenimiento, Compras, Servicios, Salud, Otros.\n\nDescripción de la transacción: {{{transactionDescription}}}\n\nCategoría Sugerida:`, config: {
     safetySettings: [
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
@@ -74,4 +74,3 @@ const suggestExpenseCategoryFlow = ai.defineFlow(
     return output!;
   }
 );
-

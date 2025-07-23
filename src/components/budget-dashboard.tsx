@@ -17,12 +17,12 @@ import {toZonedTime} from "date-fns-tz";
 import { ExpenseDetail } from './expense-detail';
 
 const initialExpenses: Expense[] = [
-  { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
-  { id: '2', description: 'Monthly rent', amount: 1200, date: toZonedTime(new Date('2024-07-01T00:00:00Z'), 'UTC'), category: 'Housing', paymentMethod: 'cash' },
-  { id: '3', description: 'New Laptop', amount: 1500, date: toZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Shopping', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
-  { id: '4', description: 'Gasoline for car', amount: 50, date: toZonedTime(new Date('2024-07-10T00:00:00Z'), 'UTC'), category: 'Transport', paymentMethod: 'cash' },
-  { id: '5', description: 'Dinner with friends', amount: 120, date: toZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
-  { id: '6', description: 'Electricity Bill', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Utilities', paymentMethod: 'cash' },
+  { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
+  { id: '2', description: 'Alquiler mensual', amount: 1200, date: toZonedTime(new Date('2024-07-01T00:00:00Z'), 'UTC'), category: 'Vivienda', paymentMethod: 'cash' },
+  { id: '3', description: 'Nueva Laptop', amount: 1500, date: toZonedTime(new Date('2024-06-20T00:00:00Z'), 'UTC'), category: 'Compras', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
+  { id: '4', description: 'Gasolina para el auto', amount: 50, date: toZonedTime(new Date('2024-07-10T00:00:00Z'), 'UTC'), category: 'Transporte', paymentMethod: 'cash' },
+  { id: '5', description: 'Cena con amigos', amount: 120, date: toZonedTime(new Date('2024-07-18T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
+  { id: '6', description: 'Factura de electricidad', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Servicios', paymentMethod: 'cash' },
 ];
 
 export default function BudgetDashboard() {
@@ -92,12 +92,12 @@ export default function BudgetDashboard() {
 
   const handleAddExpense = (expense: Omit<Expense, 'id'>) => {
     setExpenses(prev => [...prev, { ...expense, id: Date.now().toString() }]);
-    toast({ title: "Success", description: "Expense added successfully." });
+    toast({ title: "Éxito", description: "Gasto agregado exitosamente." });
   };
   
   const handleUpdateExpense = (expense: Expense) => {
     setExpenses(prev => prev.map(e => (e.id === expense.originalId || e.id === expense.id) ? expense : e));
-    toast({ title: "Success", description: "Expense updated successfully." });
+    toast({ title: "Éxito", description: "Gasto actualizado exitosamente." });
   };
   
   const handleOpenEditForm = (expense: Expense) => {
@@ -108,7 +108,7 @@ export default function BudgetDashboard() {
 
   const handleDeleteExpense = (id: string) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
-    toast({ title: "Success", description: "Expense deleted." });
+    toast({ title: "Éxito", description: "Gasto eliminado." });
   };
   
   const handleViewExpense = (expense: Expense) => {
@@ -128,7 +128,8 @@ export default function BudgetDashboard() {
   }
 
   const { totalExpenses, cashExpenses, cardExpenses } = useMemo(() => {
-    return expenses.reduce((acc, expense) => { // Use original expenses for summary cards
+    // Usar expandedExpenses para las tarjetas de resumen para reflejar el mes filtrado
+    return filteredExpenses.reduce((acc, expense) => {
       acc.totalExpenses += expense.amount;
       if (expense.paymentMethod === 'cash') {
         acc.cashExpenses += expense.amount;
@@ -137,10 +138,10 @@ export default function BudgetDashboard() {
       }
       return acc;
     }, { totalExpenses: 0, cashExpenses: 0, cardExpenses: 0 });
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   const handleExport = useCallback(() => {
-    const header = "id,description,amount,date,category,paymentMethod,installments_count,installments_interest,installments_monthly_payment\n";
+    const header = "id,descripcion,monto,fecha,categoria,metodo_pago,cuotas_cantidad,cuotas_interes,cuotas_pago_mensual\n";
     const csvRows = expenses.map(e => {
       const row = [
         e.id,
@@ -162,13 +163,13 @@ export default function BudgetDashboard() {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', 'budgetwise_expenses.csv');
+      link.setAttribute('download', 'gastos_presupuesto.csv');
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-     toast({ title: "Success", description: "Expenses exported to CSV." });
+     toast({ title: "Éxito", description: "Gastos exportados a CSV." });
   }, [expenses, toast]);
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,9 +205,9 @@ export default function BudgetDashboard() {
           }
         });
         setExpenses(prev => [...prev, ...newExpenses]);
-        toast({ title: "Success", description: "Expenses imported successfully." });
+        toast({ title: "Éxito", description: "Gastos importados exitosamente." });
       } catch (error) {
-        toast({ variant: "destructive", title: "Error", description: "Failed to import CSV. Please check file format." });
+        toast({ variant: "destructive", title: "Error", description: "Error al importar CSV. Por favor, revisa el formato del archivo." });
       }
     };
     reader.readAsText(file);
@@ -232,13 +233,13 @@ export default function BudgetDashboard() {
                       onChange={handleImport}
                     />
                     <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2" /> Import
+                        <Upload className="mr-2" /> Importar
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleExport}>
-                        <Download className="mr-2" /> Export
+                        <Download className="mr-2" /> Exportar
                     </Button>
                     <Button size="sm" onClick={handleOpenForm}>
-                        <Plus className="mr-2" /> Add Expense
+                        <Plus className="mr-2" /> Agregar Gasto
                     </Button>
                 </div>
             </div>
@@ -248,32 +249,32 @@ export default function BudgetDashboard() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+              <CardTitle className="text-sm font-medium">Gastos Totales</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${totalExpenses.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Sum of all expenses</p>
+              <p className="text-xs text-muted-foreground">Suma de todos los gastos</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cash Expenses</CardTitle>
+              <CardTitle className="text-sm font-medium">Gastos en Efectivo</CardTitle>
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${cashExpenses.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Paid with cash</p>
+              <p className="text-xs text-muted-foreground">Pagado con efectivo</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Credit Card</CardTitle>
+              <CardTitle className="text-sm font-medium">Tarjeta de Crédito</CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${cardExpenses.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Paid with credit card</p>
+              <p className="text-xs text-muted-foreground">Pagado con tarjeta de crédito</p>
             </CardContent>
           </Card>
         </div>
@@ -281,27 +282,27 @@ export default function BudgetDashboard() {
           <CardHeader>
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
                 <div>
-                    <CardTitle>Expense History</CardTitle>
-                    <CardDescription>View and manage your recorded expenses.</CardDescription>
+                    <CardTitle>Historial de Gastos</CardTitle>
+                    <CardDescription>Ver y administrar tus gastos registrados.</CardDescription>
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                   <Select value={filters.category} onValueChange={(value) => setFilters(f => ({ ...f, category: value }))}>
                     <SelectTrigger className="w-full md:w-[160px]">
-                      <SelectValue placeholder="Category" />
+                      <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="all">Todas las Categorías</SelectItem>
                       {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                    <Select value={filters.paymentMethod} onValueChange={(value) => setFilters(f => ({ ...f, paymentMethod: value }))}>
                     <SelectTrigger className="w-full md:w-[160px]">
-                      <SelectValue placeholder="Payment" />
+                      <SelectValue placeholder="Pago" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Payments</SelectItem>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="credit-card">Credit Card</SelectItem>
+                      <SelectItem value="all">Todos los Pagos</SelectItem>
+                      <SelectItem value="cash">Efectivo</SelectItem>
+                      <SelectItem value="credit-card">Tarjeta de Crédito</SelectItem>
                     </SelectContent>
                   </Select>
                    <Popover>
@@ -314,7 +315,7 @@ export default function BudgetDashboard() {
                                   format(filters.dateRange.from, "MMMM yyyy")
                               )
                           ) : (
-                              <span>Pick a date range</span>
+                              <span>Elige un rango de fechas</span>
                           )}
                       </Button>
                     </PopoverTrigger>
@@ -357,7 +358,3 @@ export default function BudgetDashboard() {
     </div>
   );
 }
-
-    
-
-    
