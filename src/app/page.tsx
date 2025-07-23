@@ -1,3 +1,9 @@
+import BudgetDashboard from '@/components/budget-dashboard';
+
 export default function Home() {
-  return <></>;
+  return (
+    <div className="bg-background">
+      <BudgetDashboard />
+    </div>
+  );
 }
