@@ -8,6 +8,7 @@ import { addMonths, format } from 'date-fns';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 
 
 const initialExpenses: Expense[] = [
@@ -78,10 +79,13 @@ export default function MonthlyBreakdown() {
   const availableMonths = useMemo(() => {
     return monthlyData.map(data => data.month);
   }, [monthlyData]);
-
-  const expensesGroupedByCategory = useMemo(() => {
-    if (filteredData.length !== 1) return {};
-    return filteredData[0].expenses.reduce((acc, expense) => {
+  
+  const { expensesGroupedByCategory, categoryColorMap } = useMemo(() => {
+    if (filteredData.length !== 1) return { expensesGroupedByCategory: {}, categoryColorMap: {} };
+    
+    const monthData = filteredData[0];
+    
+    const expensesGrouped = monthData.expenses.reduce((acc, expense) => {
         if(!acc[expense.category]) {
             acc[expense.category] = { expenses: [], subtotal: 0};
         }
@@ -89,7 +93,16 @@ export default function MonthlyBreakdown() {
         acc[expense.category].subtotal += expense.amount;
         return acc;
     }, {} as Record<string, { expenses: Expense[], subtotal: number }>)
-  }, [filteredData])
+    
+    const colorMap: Record<string, string> = {};
+    monthData.categoryData.forEach((cat, index) => {
+        colorMap[cat.name] = COLORS[index % COLORS.length];
+    });
+
+    return { expensesGroupedByCategory: expensesGrouped, categoryColorMap: colorMap };
+
+  }, [filteredData]);
+
 
   return (
     <div>
@@ -156,8 +169,8 @@ export default function MonthlyBreakdown() {
                             {Object.entries(expensesGroupedByCategory).map(([category, { expenses, subtotal }]) => (
                                 <React.Fragment key={category}>
                                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                        <TableCell colSpan={2} className="font-bold">{category}</TableCell>
-                                        <TableCell className="text-right font-bold font-mono">${subtotal.toFixed(2)}</TableCell>
+                                        <TableCell colSpan={2} className="font-bold" style={{ color: categoryColorMap[category] }}>{category}</TableCell>
+                                        <TableCell className="text-right font-bold font-mono" style={{ color: categoryColorMap[category] }}>${subtotal.toFixed(2)}</TableCell>
                                     </TableRow>
                                     {expenses.map(expense => (
                                         <TableRow key={expense.id}>
