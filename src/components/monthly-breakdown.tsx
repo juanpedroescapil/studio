@@ -1,10 +1,13 @@
+
 "use client";
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Expense, categories } from '@/types';
 import { toZonedTime } from "date-fns-tz";
 import { addMonths, format } from 'date-fns';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 const initialExpenses: Expense[] = [
   { id: '1', description: 'Compras en SuperMart', amount: 75.50, date: toZonedTime(new Date('2024-07-15T00:00:00Z'), 'UTC'), category: 'Comida', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
@@ -19,6 +22,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ff4d4d'
 
 export default function MonthlyBreakdown() {
   const [expenses] = useState<Expense[]>(initialExpenses);
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
   const expandedExpenses = useMemo(() => {
     const allExpenses: Expense[] = [];
@@ -58,40 +62,68 @@ export default function MonthlyBreakdown() {
       month,
       total: data.total,
       categoryData: Object.entries(data.byCategory).map(([name, value]) => ({ name, value })),
-    })).sort((a,b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+    })).sort((a,b) => new Date(b.month).getTime() - new Date(a.month).getTime());
   }, [expandedExpenses]);
+  
+  const filteredData = useMemo(() => {
+    if (selectedMonth === 'all') {
+      return monthlyData;
+    }
+    return monthlyData.filter(data => data.month === selectedMonth);
+  }, [monthlyData, selectedMonth]);
+
+  const availableMonths = useMemo(() => {
+    return monthlyData.map(data => data.month);
+  }, [monthlyData]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-      {monthlyData.map(({ month, total, categoryData }) => (
-        <Card key={month}>
-          <CardHeader>
-            <CardTitle>{month}</CardTitle>
-            <p className="text-2xl font-bold">${total.toFixed(2)}</p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      ))}
+    <div>
+        <div className="mb-4">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Seleccionar mes" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Todos los Meses</SelectItem>
+                    {availableMonths.map(month => (
+                        <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+          {filteredData.map(({ month, total, categoryData }) => (
+            <Card key={month}>
+              <CardHeader>
+                <CardTitle>{month}</CardTitle>
+                <p className="text-2xl font-bold">${total.toFixed(2)}</p>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
     </div>
   );
 }
+
