@@ -14,7 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Lightbulb, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Expense, categories, Category } from '@/types';
+import { Expense } from '@/types';
 import { getCategorySuggestion } from '@/lib/actions';
 import { useToast } from "@/hooks/use-toast"
 
@@ -25,13 +25,15 @@ type ExpenseFormProps = {
   onAddExpense: (expense: Omit<Expense, 'id'>) => void;
   onUpdateExpense: (expense: Expense) => void;
   expenseToEdit?: Expense;
+  categories: string[];
 };
 
 const formSchema = z.object({
   description: z.string().min(3, 'La descripción debe tener al menos 3 caracteres'),
   amount: z.coerce.number().positive('El monto debe ser positivo'),
   date: z.date(),
-  category: z.enum(categories),
+  category: z.string().min(1, 'La categoría es requerida'),
+  newCategory: z.string().optional(),
   paymentMethod: z.enum(['cash', 'credit-card', 'credit']),
   installmentsCount: z.coerce.number().optional(),
   interestRate: z.coerce.number().optional(),
@@ -39,14 +41,15 @@ const formSchema = z.object({
 
 type ExpenseFormValues = z.infer<typeof formSchema>;
 
-export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit }: ExpenseFormProps) {
+export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpense, expenseToEdit, categories }: ExpenseFormProps) {
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
       amount: 0,
       date: new Date(),
-      category: 'Comida',
+      category: categories[0] || '',
+      newCategory: '',
       paymentMethod: 'cash',
       installmentsCount: 1,
       interestRate: 0,
@@ -59,7 +62,8 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         date: new Date(),
         description: '',
         amount: 0,
-        category: 'Comida',
+        category: categories[0] || '',
+        newCategory: '',
         paymentMethod: 'cash',
         installmentsCount: 1,
         interestRate: 0,
@@ -69,18 +73,19 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         description: expenseToEdit.description,
         amount: expenseToEdit.amount,
         date: expenseToEdit.date,
-        category: expenseToEdit.category as Category,
+        category: expenseToEdit.category,
         paymentMethod: expenseToEdit.paymentMethod,
         installmentsCount: expenseToEdit.installments?.count,
         interestRate: expenseToEdit.installments?.interestRate,
       });
     }
-  }, [isOpen, expenseToEdit, form]);
+  }, [isOpen, expenseToEdit, form, categories]);
 
   const { toast } = useToast();
   const [isSuggestionLoading, startSuggestionTransition] = useTransition();
 
   const paymentMethod = form.watch('paymentMethod');
+  const category = form.watch('category');
 
   const calculateMonthlyPayment = (principal: number, annualInterestRate: number, installments: number): number => {
     if (installments <= 0) return principal;
@@ -103,9 +108,9 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
         return;
     }
     startSuggestionTransition(async () => {
-        const result = await getCategorySuggestion(description);
-        if (result.suggestedCategory && categories.includes(result.suggestedCategory as Category)) {
-            form.setValue("category", result.suggestedCategory as Category);
+        const result = await getCategorySuggestion(description, categories);
+        if (result.suggestedCategory && categories.includes(result.suggestedCategory)) {
+            form.setValue("category", result.suggestedCategory);
              toast({ title: "Sugerencia", description: `Te sugerimos la categoría: ${result.suggestedCategory}` });
         } else {
             toast({ variant: "destructive", title: "Sugerencia Fallida", description: "No se pudo sugerir una categoría para este gasto." });
@@ -114,11 +119,17 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
   };
 
   const onSubmit = (values: ExpenseFormValues) => {
+    const finalCategory = values.category === 'new' ? values.newCategory : values.category;
+    if (!finalCategory || finalCategory.trim() === '') {
+        form.setError('category', { type: 'manual', message: 'La categoría es requerida.' });
+        return;
+    }
+
     const expenseData: Omit<Expense, 'id'> = {
       description: values.description,
       amount: values.amount,
       date: values.date,
-      category: values.category,
+      category: finalCategory,
       paymentMethod: values.paymentMethod,
     };
 
@@ -235,12 +246,28 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
                         {categories.map(cat => (
                             <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                         ))}
+                        <SelectItem value="new">+ Agregar nueva categoría</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
+                 {category === 'new' && (
+                  <FormField
+                    control={form.control}
+                    name="newCategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nueva Categoría</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nombre de la categoría" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                 control={form.control}
                 name="paymentMethod"
@@ -305,3 +332,5 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     </Dialog>
   );
 }
+
+    

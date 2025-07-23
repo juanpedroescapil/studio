@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Plus, Download, Upload, Wallet, CreditCard, TrendingUp, Landmark, Banknote } from 'lucide-react';
 import { ExpenseForm } from './expense-form';
 import { ExpenseTable } from './expense-table';
-import { Expense, categories } from '@/types';
+import { Expense } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
@@ -26,8 +26,12 @@ const initialExpenses: Expense[] = [
   { id: '6', description: 'Factura de electricidad', amount: 85, date: toZonedTime(new Date('2024-07-05T00:00:00Z'), 'UTC'), category: 'Servicios', paymentMethod: 'cash' },
 ];
 
+const initialCategories = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Compras', 'Servicios', 'Salud', 'Préstamos', 'Otros'];
+
+
 export default function BudgetDashboard() {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [categories, setCategories] = useState<string[]>(initialCategories);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
@@ -93,11 +97,17 @@ export default function BudgetDashboard() {
 
   const handleAddExpense = (expense: Omit<Expense, 'id'>) => {
     setExpenses(prev => [...prev, { ...expense, id: Date.now().toString() }]);
+    if (!categories.includes(expense.category)) {
+      setCategories(prev => [...prev, expense.category].sort());
+    }
     toast({ title: "Éxito", description: "Gasto agregado exitosamente." });
   };
   
   const handleUpdateExpense = (expense: Expense) => {
     setExpenses(prev => prev.map(e => (e.id === expense.originalId || e.id === expense.id) ? expense : e));
+    if (!categories.includes(expense.category)) {
+      setCategories(prev => [...prev, expense.category].sort());
+    }
     toast({ title: "Éxito", description: "Gasto actualizado exitosamente." });
   };
   
@@ -184,16 +194,18 @@ export default function BudgetDashboard() {
       const text = e.target?.result as string;
       const rows = text.split('\n').slice(1);
       const newExpenses: Expense[] = [];
+      const newCategories = new Set(categories);
       try {
         rows.forEach(rowStr => {
           if (!rowStr.trim()) return;
           const columns = rowStr.split(',');
+          const category = columns[4] as string;
           const expense: Expense = {
             id: columns[0] || Date.now().toString(),
             description: columns[1]?.replace(/"/g, '') || 'N/A',
             amount: parseFloat(columns[2]),
             date: new Date(columns[3]),
-            category: columns[4] as Expense['category'],
+            category: category,
             paymentMethod: columns[5] as Expense['paymentMethod'],
           };
           if ((expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && columns[6]) {
@@ -205,9 +217,13 @@ export default function BudgetDashboard() {
           }
           if (!isNaN(expense.amount) && expense.date.toString() !== 'Invalid Date') {
             newExpenses.push(expense);
+            if (!newCategories.has(category)) {
+              newCategories.add(category);
+            }
           }
         });
         setExpenses(prev => [...prev, ...newExpenses]);
+        setCategories(Array.from(newCategories).sort());
         toast({ title: "Éxito", description: "Gastos importados exitosamente." });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Error al importar CSV. Por favor, revisa el formato del archivo." });
@@ -362,6 +378,7 @@ export default function BudgetDashboard() {
         onAddExpense={handleAddExpense}
         onUpdateExpense={handleUpdateExpense}
         expenseToEdit={editingExpense}
+        categories={categories}
       />
       {selectedExpense && (
           <ExpenseDetail
@@ -373,3 +390,5 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    

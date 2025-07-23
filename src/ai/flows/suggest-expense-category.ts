@@ -21,6 +21,7 @@ const SuggestExpenseCategoryInputSchema = z.object({
   transactionDescription: z
     .string()
     .describe('Una descripción de la transacción para la cual sugerir una categoría.'),
+  categories: z.array(z.string()).describe('La lista de categorías disponibles.')
 });
 export type SuggestExpenseCategoryInput = z.infer<
   typeof SuggestExpenseCategoryInputSchema
@@ -45,7 +46,8 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: {schema: SuggestExpenseCategoryInputSchema},
   output: {schema: SuggestExpenseCategoryOutputSchema},
-  prompt: `Dada la siguiente descripción de la transacción, sugiere una categoría de gasto relevante en español de esta lista: Comida, Transporte, Vivienda, Entretenimiento, Compras, Servicios, Salud, Otros.\n\nDescripción de la transacción: {{{transactionDescription}}}\n\nCategoría Sugerida:`, config: {
+  prompt: `Dada la siguiente descripción de la transacción, sugiere una categoría de gasto relevante en español de esta lista: {{#each categories}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}.\n\nDescripción de la transacción: {{{transactionDescription}}}\n\nCategoría Sugerida:`,
+  config: {
     safetySettings: [
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
@@ -74,3 +76,5 @@ const suggestExpenseCategoryFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    
