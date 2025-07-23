@@ -13,14 +13,15 @@ import { Calendar } from './ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast"
+import {utcToZonedTime} from "date-fns-tz";
 
 const initialExpenses: Expense[] = [
-  { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: new Date('2024-07-15'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
-  { id: '2', description: 'Monthly rent', amount: 1200, date: new Date('2024-07-01'), category: 'Housing', paymentMethod: 'cash' },
-  { id: '3', description: 'New Laptop', amount: 1500, date: new Date('2024-06-20'), category: 'Shopping', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
-  { id: '4', description: 'Gasoline for car', amount: 50, date: new Date('2024-07-10'), category: 'Transport', paymentMethod: 'cash' },
-  { id: '5', description: 'Dinner with friends', amount: 120, date: new Date('2024-07-18'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
-  { id: '6', description: 'Electricity Bill', amount: 85, date: new Date('2024-07-05'), category: 'Utilities', paymentMethod: 'cash' },
+  { id: '1', description: 'Groceries at SuperMart', amount: 75.50, date: new Date('2024-07-15T00:00:00Z'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 75.50 } },
+  { id: '2', description: 'Monthly rent', amount: 1200, date: new Date('2024-07-01T00:00:00Z'), category: 'Housing', paymentMethod: 'cash' },
+  { id: '3', description: 'New Laptop', amount: 1500, date: new Date('2024-06-20T00:00:00Z'), category: 'Shopping', paymentMethod: 'credit-card', installments: { count: 12, interestRate: 5, monthlyPayment: 128.38 } },
+  { id: '4', description: 'Gasoline for car', amount: 50, date: new Date('2024-07-10T00:00:00Z'), category: 'Transport', paymentMethod: 'cash' },
+  { id: '5', description: 'Dinner with friends', amount: 120, date: new Date('2024-07-18T00:00:00Z'), category: 'Food', paymentMethod: 'credit-card', installments: { count: 1, interestRate: 0, monthlyPayment: 120 } },
+  { id: '6', description: 'Electricity Bill', amount: 85, date: new Date('2024-07-05T00:00:00Z'), category: 'Utilities', paymentMethod: 'cash' },
 ];
 
 export default function BudgetDashboard() {
@@ -295,3 +296,5 @@ export default function BudgetDashboard() {
     </div>
   );
 }
+
+    

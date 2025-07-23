@@ -43,10 +43,33 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
   const [initialDate, setInitialDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setInitialDate(new Date());
+    // This effect runs only on the client, ensuring `new Date()` doesn't cause a hydration mismatch.
+    if (isOpen && !expenseToEdit) {
+      // When the form opens for a new expense, set the date.
+      form.reset({
+        ...form.getValues(),
+        date: new Date(),
+        description: '',
+        amount: 0,
+        category: 'Food',
+        paymentMethod: 'cash',
+        installmentsCount: 1,
+        interestRate: 0,
+      });
+    } else if (isOpen && expenseToEdit) {
+      // When the form opens for an existing expense, populate it with the expense data.
+      form.reset({
+        description: expenseToEdit.description,
+        amount: expenseToEdit.amount,
+        date: expenseToEdit.date,
+        category: expenseToEdit.category as Category,
+        paymentMethod: expenseToEdit.paymentMethod,
+        installmentsCount: expenseToEdit.installments?.count,
+        interestRate: expenseToEdit.installments?.interestRate,
+      });
     }
-  }, []);
+  }, [isOpen, expenseToEdit, form]);
+
 
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(formSchema),
@@ -63,30 +86,6 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
 
   const { toast } = useToast();
   const [isSuggestionLoading, startSuggestionTransition] = useTransition();
-
-  useEffect(() => {
-    if (expenseToEdit) {
-      form.reset({
-        description: expenseToEdit.description,
-        amount: expenseToEdit.amount,
-        date: expenseToEdit.date,
-        category: expenseToEdit.category as Category,
-        paymentMethod: expenseToEdit.paymentMethod,
-        installmentsCount: expenseToEdit.installments?.count,
-        interestRate: expenseToEdit.installments?.interestRate,
-      });
-    } else {
-        form.reset({
-        description: '',
-        amount: 0,
-        date: initialDate,
-        category: 'Food',
-        paymentMethod: 'cash',
-        installmentsCount: 1,
-        interestRate: 0,
-      });
-    }
-  }, [expenseToEdit, isOpen, form, initialDate]);
 
   const paymentMethod = form.watch('paymentMethod');
 
@@ -312,3 +311,5 @@ export function ExpenseForm({ isOpen, onOpenChange, onAddExpense, onUpdateExpens
     </Dialog>
   );
 }
+
+    
