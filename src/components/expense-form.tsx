@@ -35,7 +35,6 @@ const formSchema = z.object({
   amount: z.coerce.number().positive('El monto debe ser positivo'),
   date: z.date(),
   category: z.string().min(1, 'La categoría es requerida'),
-  newCategory: z.string().optional(),
   paymentMethod: z.enum(['cash', 'credit-card', 'credit']),
   creditCardId: z.string().optional(),
   installmentsCount: z.coerce.number().optional(),
@@ -61,9 +60,8 @@ export function ExpenseForm({
       amount: 0,
       date: new Date(),
       category: '',
-      newCategory: '',
       paymentMethod: 'cash',
-      creditCardId: undefined,
+      creditCardId: '',
       installmentsCount: 1,
       interestRate: 0,
     },
@@ -72,25 +70,29 @@ export function ExpenseForm({
   useEffect(() => {
     if (isOpen) {
       if (expenseToEdit) {
+        const creditCardIdString = expenseToEdit.creditCardId ? expenseToEdit.creditCardId.toString() : '';
+        console.log('Editando gasto:', expenseToEdit);
+        console.log('creditCardId original:', expenseToEdit.creditCardId);
+        console.log('creditCardId convertido:', creditCardIdString);
+        
         form.reset({
           description: expenseToEdit.description,
           amount: expenseToEdit.amount,
           date: expenseToEdit.date,
-          category: expenseToEdit.category,
+          category: typeof expenseToEdit.category === 'string' ? expenseToEdit.category : expenseToEdit.category.name,
           paymentMethod: expenseToEdit.paymentMethod,
-          creditCardId: expenseToEdit.creditCardId,
-          installmentsCount: expenseToEdit.installments?.count,
-          interestRate: expenseToEdit.installments?.interestRate,
+          creditCardId: creditCardIdString,
+          installmentsCount: expenseToEdit.installmentsCount || 1,
+          interestRate: expenseToEdit.interestRate || 0,
         });
       } else {
         form.reset({
           date: new Date(),
           description: '',
           amount: 0,
-          category: categories[0] || '',
-          newCategory: '',
+          category: categories[0]?.name || '',
           paymentMethod: 'cash',
-          creditCardId: creditCards[0]?.id || undefined,
+          creditCardId: creditCards[0]?.id?.toString() || '',
           installmentsCount: 1,
           interestRate: 0,
         });
@@ -102,7 +104,6 @@ export function ExpenseForm({
   const [isSuggestionLoading, startSuggestionTransition] = useTransition();
 
   const paymentMethod = form.watch('paymentMethod');
-  const category = form.watch('category');
 
   const calculateMonthlyPayment = (principal: number, annualInterestRate: number, installments: number): number => {
     if (installments <= 0) return principal;
@@ -125,8 +126,9 @@ export function ExpenseForm({
         return;
     }
     startSuggestionTransition(async () => {
-        const result = await getCategorySuggestion(description, categories);
-        if (result.suggestedCategory && categories.includes(result.suggestedCategory)) {
+        const categoryNames = categories.map(cat => cat.name);
+        const result = await getCategorySuggestion(description, categoryNames);
+        if (result.suggestedCategory && categoryNames.includes(result.suggestedCategory)) {
             form.setValue("category", result.suggestedCategory);
              toast({ title: "Sugerencia", description: `Te sugerimos la categoría: ${result.suggestedCategory}` });
         } else {
@@ -136,18 +138,6 @@ export function ExpenseForm({
   };
 
   const onSubmit = (values: ExpenseFormValues) => {
-    let finalCategory = values.category;
-    if (values.category === 'new') {
-        const newCategory = values.newCategory?.trim();
-        if (newCategory) {
-            onCategoryAdded(newCategory);
-            finalCategory = newCategory;
-        } else {
-            form.setError('newCategory', { type: 'manual', message: 'El nombre de la categoría no puede estar vacío.' });
-            return;
-        }
-    }
-    
     if (values.paymentMethod === 'credit-card' && !values.creditCardId) {
         form.setError('creditCardId', { type: 'manual', message: 'Por favor, selecciona una tarjeta.' });
         return;
@@ -157,7 +147,7 @@ export function ExpenseForm({
       description: values.description,
       amount: values.amount,
       date: values.date,
-      category: finalCategory,
+      category: values.category,
       paymentMethod: values.paymentMethod,
       creditCardId: values.paymentMethod === 'credit-card' ? values.creditCardId : undefined,
     };
@@ -165,15 +155,22 @@ export function ExpenseForm({
     if (values.paymentMethod === 'credit-card' || values.paymentMethod === 'credit') {
       const count = values.installmentsCount || 1;
       const interestRate = values.interestRate || 0;
-      expenseData.installments = {
-        count,
-        interestRate,
-        monthlyPayment: calculateMonthlyPayment(values.amount, interestRate, count),
-      };
+      expenseData.installmentsCount = count;
+      expenseData.interestRate = interestRate;
+      expenseData.monthlyPayment = calculateMonthlyPayment(values.amount, interestRate, count);
     }
     
     if(expenseToEdit) {
-        onUpdateExpense({ ...expenseData, id: expenseToEdit.id });
+        onUpdateExpense({ 
+          ...expenseData, 
+          id: expenseToEdit.id,
+          // Incluir campos adicionales que pueden estar en el gasto original
+          isInstallment: expenseToEdit.isInstallment,
+          installmentNumber: expenseToEdit.installmentNumber,
+          totalInstallments: expenseToEdit.totalInstallments,
+          originalId: expenseToEdit.originalId,
+          isFutureMonth: expenseToEdit.isFutureMonth
+        });
     } else {
         onAddExpense(expenseData);
     }
@@ -272,31 +269,15 @@ export function ExpenseForm({
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                        {categories.map(cat => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        {categories.map((cat, index) => (
+                            <SelectItem key={`${cat.id}-${index}`} value={cat.name}>{cat.name}</SelectItem>
                         ))}
-                        <SelectItem value="new">+ Agregar nueva categoría</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
-                 {category === 'new' && (
-                  <FormField
-                    control={form.control}
-                    name="newCategory"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nueva Categoría</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nombre de la categoría" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
             </div>
             <FormField
               control={form.control}
@@ -336,7 +317,7 @@ export function ExpenseForm({
                             </FormControl>
                             <SelectContent>
                             {creditCards.map(card => (
-                                <SelectItem key={card.id} value={card.id}>{card.name} - {card.bank}</SelectItem>
+                                <SelectItem key={card.id} value={card.id.toString()}>{card.name} - {card.number}</SelectItem>
                             ))}
                             </SelectContent>
                         </Select>

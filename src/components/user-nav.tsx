@@ -12,22 +12,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Settings, CreditCard, Upload, Download } from "lucide-react";
+import { Settings, CreditCard, Upload, Download, LogOut } from "lucide-react";
 
-type UserNavProps = {
+interface UserNavProps {
   onImportClick: () => void;
   onExportClick: () => void;
   onManageCategoriesClick: () => void;
   onManageCreditCardsClick: () => void;
-};
+  onLogout?: () => void;
+}
 
-export function UserNav({ onImportClick, onExportClick, onManageCategoriesClick, onManageCreditCardsClick }: UserNavProps) {
+export function UserNav({ onImportClick, onExportClick, onManageCategoriesClick, onManageCreditCardsClick, onLogout }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="/avatars/03.png" alt="@shadcn" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </Button>
@@ -59,6 +59,12 @@ export function UserNav({ onImportClick, onExportClick, onManageCategoriesClick,
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Administrar Tarjetas</span>
           </DropdownMenuItem>
+          {onLogout && (
+            <DropdownMenuItem onClick={onLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar sesión</span>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

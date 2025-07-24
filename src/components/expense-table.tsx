@@ -32,12 +32,12 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
 };
 
 const paymentMethodIcons: { [key: string]: React.ReactNode } = {
-    cash: <Wallet className="h-4 w-4 text-green-600" />,
-    'credit-card': <CreditCardIcon className="h-4 w-4 text-blue-600" />,
-    credit: <Banknote className="h-4 w-4 text-purple-600" />,
+    cash: <Wallet className="h-4 w-4 text-chart-2" />,
+    'credit-card': <CreditCardIcon className="h-4 w-4 text-chart-4" />,
+    credit: <Banknote className="h-4 w-4 text-chart-3" />,
 };
 
-const monthColors = ['text-chart-3', 'text-chart-1', 'text-chart-2', 'text-chart-4', 'text-chart-6'];
+const monthColors = ['text-chart-3', 'text-chart-1', 'text-chart-2', 'text-chart-4', 'text-chart-5', 'text-chart-6'];
 
 
 export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, onView }: ExpenseTableProps) {
@@ -45,13 +45,15 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
 
     const getPaymentMethodLabel = (expense: Expense) => {
         if (expense.paymentMethod === 'credit-card') {
-            const card = creditCards.find(c => c.id === expense.creditCardId);
+            const card = creditCards.find(c => c.id.toString() === expense.creditCardId);
             return card ? `${card.name}` : 'Tarjeta de Crédito';
         }
         if (expense.paymentMethod === 'cash') return 'Efectivo';
         if (expense.paymentMethod === 'credit') return 'Crédito';
         return '';
     }
+
+
 
   return (
     <div className="rounded-md border">
@@ -68,26 +70,27 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
             </TableHeader>
             <TableBody>
                 {months.length > 0 ? (
-                 months.map((month, index) => (
+                 months.map((month, index) => {
+                    return (
                     <React.Fragment key={month}>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
                             <TableCell colSpan={4} className={cn("font-bold", monthColors[index % monthColors.length])}>{month}</TableCell>
                             <TableCell colSpan={2} className={cn("text-right font-bold font-mono", monthColors[index % monthColors.length])}>${groupedExpenses[month].subtotal.toFixed(2)}</TableCell>
                         </TableRow>
-                        {groupedExpenses[month].expenses.map(expense => (
-                            <TableRow key={expense.id} onClick={() => onView(expense)} className="cursor-pointer">
+                        {groupedExpenses[month].expenses.map((expense, expenseIndex) => (
+                            <TableRow key={`${expense.id}-${expenseIndex}`} onClick={() => onView(expense)} className="cursor-pointer">
                             <TableCell className="font-medium">{expense.description}</TableCell>
                             <TableCell>
                                 <Badge variant="outline" className="flex items-center gap-2 w-fit">
-                                    {categoryIcons[expense.category]}
-                                    {expense.category}
+                                    {categoryIcons[typeof expense.category === 'string' ? expense.category : expense.category.name]}
+                                    {typeof expense.category === 'string' ? expense.category : expense.category.name}
                                 </Badge>
                             </TableCell>
                             <TableCell>{format(expense.date, 'MMM dd, yyyy')}</TableCell>
                             <TableCell className="flex items-center gap-2">
                                 {paymentMethodIcons[expense.paymentMethod]}
                                 <span className="capitalize">{getPaymentMethodLabel(expense)}</span>
-                                {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installments && expense.installments.count > 1 && (
+                                {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installmentsCount && expense.installmentsCount > 1 && (
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
@@ -97,10 +100,10 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
                                         <PopoverContent className="w-60">
                                             <div className="grid gap-2 text-sm">
                                                 <div className="font-semibold">Detalles de Cuotas</div>
-                                                <div className="flex justify-between"><span>Monto Total:</span> <span>${(expense.installments.monthlyPayment * expense.installments.count).toFixed(2)}</span></div>
-                                                <div className="flex justify-between"><span>Cuotas:</span> <span>{expense.installments.count}</span></div>
-                                                <div className="flex justify-between"><span>Tasa de Interés:</span> <span>{expense.installments.interestRate}%</span></div>
-                                                <div className="flex justify-between"><span>Mensual:</span> <span>${expense.installments.monthlyPayment.toFixed(2)}</span></div>
+                                                <div className="flex justify-between"><span>Monto Total:</span> <span>${((expense.monthlyPayment || expense.amount) * (expense.installmentsCount || 1)).toFixed(2)}</span></div>
+                                                <div className="flex justify-between"><span>Cuotas:</span> <span>{expense.installmentsCount}</span></div>
+                                                <div className="flex justify-between"><span>Tasa de Interés:</span> <span>{expense.interestRate || 0}%</span></div>
+                                                <div className="flex justify-between"><span>Mensual:</span> <span>${(expense.monthlyPayment || expense.amount).toFixed(2)}</span></div>
                                             </div>
                                         </PopoverContent>
                                     </Popover>
@@ -110,7 +113,7 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
                             <TableCell onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={expense.isInstallment}>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
                                     <span className="sr-only">Abrir menú</span>
                                     <MoreHorizontal className="h-4 w-4" />
                                     </Button>
@@ -125,7 +128,8 @@ export function ExpenseTable({ groupedExpenses, creditCards, onEdit, onDelete, o
                             </TableRow>
                         ))}
                     </React.Fragment>
-                 ))
+                    );
+                 })
                 ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">

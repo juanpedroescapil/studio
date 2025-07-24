@@ -59,7 +59,7 @@ export function ExpenseDetail({
       case 'cash':
         return { icon: <Wallet className="h-4 w-4 text-green-600" />, label: 'Efectivo' };
       case 'credit-card':
-        const cardLabel = creditCard ? `${creditCard.name} (${creditCard.bank})` : 'Tarjeta de Crédito';
+        const cardLabel = creditCard ? `${creditCard.name} (${creditCard.number})` : 'Tarjeta de Crédito';
         return { icon: <CreditCardIcon className="h-4 w-4 text-blue-600" />, label: cardLabel };
       case 'credit':
         return { icon: <Banknote className="h-4 w-4 text-purple-600" />, label: 'Crédito' };
@@ -102,8 +102,8 @@ export function ExpenseDetail({
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Categoría</span>
             <Badge variant="outline" className="flex items-center gap-2">
-              {categoryIcons[expense.category]}
-              {expense.category}
+              {categoryIcons[typeof expense.category === 'string' ? expense.category : expense.category.name]}
+              {typeof expense.category === 'string' ? expense.category : expense.category.name}
             </Badge>
           </div>
           <Separator />
@@ -114,22 +114,22 @@ export function ExpenseDetail({
               <span className="capitalize">{paymentMethodDetails.label}</span>
             </div>
           </div>
-          {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installments && expense.installments.count > 1 && (
+          {(expense.paymentMethod === 'credit-card' || expense.paymentMethod === 'credit') && expense.installmentsCount && expense.installmentsCount > 1 && (
             <>
               <Separator />
               <div className="space-y-2">
                   <h4 className="font-medium">Detalles de Cuotas</h4>
                   <div className="flex justify-between items-center pl-4">
                       <span className="text-muted-foreground">Cuotas</span>
-                      <span className="font-medium">{expense.installments.count}</span>
+                      <span className="font-medium">{expense.installmentsCount}</span>
                   </div>
                    <div className="flex justify-between items-center pl-4">
                       <span className="text-muted-foreground">Tasa de Interés</span>
-                      <span className="font-medium">{expense.installments.interestRate}%</span>
+                      <span className="font-medium">{expense.interestRate || 0}%</span>
                   </div>
                    <div className="flex justify-between items-center pl-4">
                       <span className="text-muted-foreground">Pago Mensual</span>
-                      <span className="font-medium">${expense.installments.monthlyPayment.toFixed(2)}</span>
+                      <span className="font-medium">${(expense.monthlyPayment || 0).toFixed(2)}</span>
                   </div>
               </div>
             </>
